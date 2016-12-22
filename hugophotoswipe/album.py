@@ -51,7 +51,7 @@ class Album(object):
     def name(self):
         """ Name of the album """
         base_album_dir = os.path.basename(self._album_dir)
-        return base_album_dir[len(settings.album_prefix):]
+        return base_album_dir
 
     @property
     def names_unique(self):

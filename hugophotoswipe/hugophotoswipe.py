@@ -32,8 +32,7 @@ class HugoPhotoSwipe(object):
     def new(self):
         """ Create new album """
         name = input("Please provide a name for the new album: ")
-        clean_name = name.strip().replace(' ', '_')
-        album_dir = '%s%s' % (settings.album_prefix, clean_name)
+        album_dir = name.strip().replace(' ', '_')
         if os.path.exists(album_dir):
             print("Can't create album with this name, it exists already.")
             raise SystemExit
@@ -73,9 +72,7 @@ class HugoPhotoSwipe(object):
     def _load_albums(self):
         local_objects = os.listdir()
         local_dirs = [o for o in local_objects if os.path.isdir(o)]
-        clean_dirs = [d.lstrip('./') for d in local_dirs]
-        prefix = settings.album_prefix
-        album_dirs = [c for c in clean_dirs if c.startswith(prefix)]
+        album_dirs = [d.lstrip('./') for d in local_dirs]
         albums = []
         for album_dir in album_dirs:
             album = Album.load(album_dir)

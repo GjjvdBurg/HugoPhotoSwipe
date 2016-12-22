@@ -34,7 +34,6 @@ DEFAULTS = {
         'cover_filename': 'coverimage.jpg',
         'photo_dir': 'photos',
         'album_file': 'album.yml',
-        'album_prefix': 'album_',
         'use_smartcrop_js': False,
         'smartcrop_js_path': None,
         }
