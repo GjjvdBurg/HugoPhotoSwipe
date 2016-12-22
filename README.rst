@@ -61,7 +61,10 @@ an empty ``photos`` directory.
 
 At this point, you should place some photos in the ``photos`` directory and 
 set the title field of the album in the ``album.yml`` file. You can also set 
-the album date, the country, and the copyright line.
+the album date, the copyright line, and the filename of the coverimage.  
+Key/Value pairs you place under the ``properties`` line will be placed in the 
+preamble of the markdown file, so you can use them in Hugo layouts. For 
+instance, you may want to add a country field, camera details, etc.
 
 In the main directory (where the ``hugophotoswipe.yml`` file is), you can now 
 run::

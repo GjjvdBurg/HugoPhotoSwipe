@@ -23,7 +23,7 @@ from .utils import yaml_field_to_file, modtime, question_yes_no, mkdirs
 class Album(object):
 
     def __init__(self, album_dir=None, title=None, album_date=None,
-            country=None, copyright=None, coverimage=None, creation_time=None,
+            properties=None, copyright=None, coverimage=None, creation_time=None,
             modification_time=None, photos=None, hashes=None):
 
         self._album_dir = album_dir
@@ -33,7 +33,7 @@ class Album(object):
 
         self.title = title
         self.album_date = album_date
-        self.country = country
+        self.properties = properties
         self.copyright = copyright
         self.coverimage = coverimage
         self.creation_time = creation_time
@@ -110,11 +110,14 @@ class Album(object):
             coverpath = '/' + self.cover_path[len(settings.output_dir):]
         else:
             coverpath = ''
+
+        proptxt = ["%s = \"%s\"" % (k, v) for k, v in self.properties.items()]
+
         txt = [
                 "+++",
                 "title = \"%s\"" % self.title,
                 "date = \"%s\"" % self.album_date,
-                "country = \"%s\"" % self.country,
+                "%s" % ('\n'.join(proptxt)),
                 "cover = \"%s\"" % coverpath,
                 "+++",
                 "",
@@ -143,7 +146,10 @@ class Album(object):
             yaml_field_to_file(fid, self.title, 'title')
             yaml_field_to_file(fid, self.album_date, 'album_date',
                     force_string=True)
-            yaml_field_to_file(fid, self.country, 'country')
+            if self.properties:
+                yaml_field_to_file(fid, None, 'properties')
+                for name, field in self.properties.items():
+                    yaml_field_to_file(fid, field, name, indent='  ')
             yaml_field_to_file(fid, self.copyright, 'copyright')
             yaml_field_to_file(fid, self.coverimage, 'coverimage')
             yaml_field_to_file(fid, self.creation_time, 'creation_time',
