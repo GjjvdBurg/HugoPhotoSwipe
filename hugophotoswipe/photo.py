@@ -184,8 +184,8 @@ class Photo(object):
     @property
     def large_path(self):
         if self.__large_path is None:
-            thedir = os.path.join(settings.output_dir, settings.photo_dir, 
-                    self.album_name, settings.dirname_large)
+            thedir = os.path.join(settings.output_dir, self.album_name, 
+                    settings.dirname_large)
             mkdirs(thedir)
             width, height = self.resize_dims('large')
             fname = '%s_%ix%i.%s' % (self.clean_name, width, height, 
@@ -197,8 +197,8 @@ class Photo(object):
     @property
     def small_path(self):
         if self.__small_path is None:
-            thedir = os.path.join(settings.output_dir, settings.photo_dir, 
-                    self.album_name, settings.dirname_small)
+            thedir = os.path.join(settings.output_dir, self.album_name, 
+                    settings.dirname_small)
             mkdirs(thedir)
             width, height = self.resize_dims('small')
             fname = '%s_%ix%i.%s' % (self.clean_name, width, height, 
@@ -210,8 +210,8 @@ class Photo(object):
     @property
     def thumb_path(self):
         if self.__thumb_path is None:
-            thedir = os.path.join(settings.output_dir, settings.photo_dir, 
-                    self.album_name, settings.dirname_thumb)
+            thedir = os.path.join(settings.output_dir, self.album_name, 
+                    settings.dirname_thumb)
             mkdirs(thedir)
             width, height = self.resize_dims('thumb')
             fname = '%s_%ix%i.%s' % (self.clean_name, width, height, 

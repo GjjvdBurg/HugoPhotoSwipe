@@ -82,8 +82,7 @@ class Album(object):
 
         Ask the user for confirmation and only remove if it exists
         """
-        output_dir = os.path.join(settings.output_dir, settings.photo_dir,
-                self.name)
+        output_dir = os.path.join(settings.output_dir, self.name)
         have_md = os.path.exists(self.markdown_file)
         have_out = os.path.exists(output_dir)
         q = "Going to remove: "
@@ -180,8 +179,8 @@ class Album(object):
             with open(album_file, 'r') as fid:
                 data.update(yaml.safe_load(fid))
         album = cls(**data)
-        album.cover_path = os.path.join(settings.output_dir,
-                settings.photo_dir, album.name, settings.cover_filename)
+        album.cover_path = os.path.join(settings.output_dir, album.name, 
+                settings.cover_filename)
 
         all_photos = []
         for p in album.photos:
