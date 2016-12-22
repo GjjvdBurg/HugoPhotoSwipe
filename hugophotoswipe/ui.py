@@ -17,9 +17,10 @@ from .hugophotoswipe import HugoPhotoSwipe
 
 def main():
     print("This is HugoPhotoSwipe version %s" % VERSION)
-    hps = HugoPhotoSwipe()
 
     command = parse_args()
+
+    hps = HugoPhotoSwipe()
     if command == 'new':
         hps.new()
     elif command == 'update':
