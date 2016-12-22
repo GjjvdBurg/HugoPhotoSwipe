@@ -3,7 +3,8 @@ HugoPhotoSwipe
 ==============
 
 HugoPhotoSwipe is a command line application to easily create and manage 
-PhotoSwipe albums when using the Hugo static website generator.
+`PhotoSwipe <http://photoswipe.com/>`_ albums when using the `Hugo 
+<https://gohugo.io/>`_ static website generator.
 
 Why?
 ====
@@ -14,8 +15,6 @@ the PhotoSwipe viewer. I also wanted to easily set photo descriptions, quickly
 update albums when photos change, and have responsive image sizes and 
 thumbnails automatically generated. HugoPhotoSwipe makes all this easily 
 possible.
-
-See the blog post `here <>`_ for more details.
 
 How?
 ====
@@ -43,11 +42,11 @@ First, initialize a new HugoPhotoSwipe directory with::
     hps init
 
 This creates a new HugoPhotoSwipe configuration file, called 
-``hugophotoswipe.yml``. This is a `YAML file <link/to/yaml>`_. In this 
-configuration file, you need to set at least the ``markdown_dir`` and 
-``output_dir`` variables. These are respectively the directory where the 
-markdown needs to be placed and the directory where the processed photos need 
-to be placed.
+``hugophotoswipe.yml``. This is a `YAML file 
+<https://en.wikipedia.org/wiki/YAML>`_.  In this configuration file, you need 
+to set at least the ``markdown_dir`` and ``output_dir`` variables.  These are 
+respectively the directory where the markdown needs to be placed and the 
+directory where the processed photos need to be placed.
 
 Second, create a new album using::
 
@@ -73,7 +72,8 @@ run::
 
 To create the markdown file, the resized photos, and will update the 
 ``album.yml`` file.  HugoPhotoSwipe creates large and small photo sizes, as 
-well as thumbnails using `SmartCrop.py <link to smartcrop.py>`_. 
+well as thumbnails using `SmartCrop.py 
+<https://github.com/hhatto/smartcrop.py>`_. 
 
 If you now open the ``album.yml`` file, you'll notice that the fields for the 
 photos and the hashes have been extended. Under ``photos:`` all the photos in 
@@ -98,5 +98,5 @@ License, version 3 or later (GPLv3). Copyright G.J.J. van den Burg, all rights
 reserved. 
 
 If you have encounter any problems, please open an issue on `GitHub 
-<link/to/github/repo>`_. You can contact me here: `@GJJvandenBurg 
-<link/to/twitter>`_.
+<https://github.com/GjjvdBurg/HugoPhotoSwipe>`_.  You can contact me here: 
+`@GJJvandenBurg <https://twitter.com/GJJvandenBurg>`_.
