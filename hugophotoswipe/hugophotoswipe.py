@@ -29,10 +29,11 @@ class HugoPhotoSwipe(object):
     #              #
     ################
 
-    def new(self):
+    def new(self, name=None):
         """ Create new album """
-        name = input("Please provide a name for the new album: ")
-        album_dir = name.strip().replace(' ', '_')
+        if name is None:
+            name = input("Please provide a name for the new album: ")
+        album_dir = name.strip().rstrip('/').replace(' ', '_')
         if os.path.exists(album_dir):
             print("Can't create album with this name, it exists already.")
             raise SystemExit
@@ -49,19 +50,37 @@ class HugoPhotoSwipe(object):
         print("Created settings file: %s" % SETTINGS_FILENAME)
 
 
-    def update(self):
+    def update(self, name=None):
         """ Update all markdown and resizes for each album """
-        for album in self._albums:
-            print("Updating album: %s" % album.name)
+        if name is None:
+            for album in self._albums:
+                print("Updating album: %s" % album.name)
+                album.update()
+            print("All albums updated.")
+        else:
+            name = name.strip('/')
+            album = next((a for a in self._albums if a.name == name), None)
+            if album is None:
+                print("Couldn't find album with name %s. Stopping." % name)
+                return
             album.update()
-        print("All albums updated.")
+            print("Album %s updated." % album.name)
 
 
-    def clean(self):
+    def clean(self, name=None):
         """ Clean up all markdown and resizes for each album """
-        for album in self._albums:
+        if name is None:
+            for album in self._albums:
+                album.clean()
+            print("All albums cleaned.")
+        else:
+            name = name.strip('/')
+            album = next((a for a in self._albums if a.name == name), None)
+            if album is None:
+                print("Couldn't find album with name %s. Stopping." % name)
+                return
             album.clean()
-        print("All albums cleaned.")
+            print("Album %s cleaned." % album.name)
 
     ####################
     #                  #
