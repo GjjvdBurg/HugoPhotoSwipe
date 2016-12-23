@@ -241,9 +241,12 @@ class Photo(object):
 
     @property
     def shortcode(self):
-        large_path = '/' + self.large_path[len(settings.output_dir):]
-        small_path = '/' + self.small_path[len(settings.output_dir):]
-        thumb_path = '/' + self.thumb_path[len(settings.output_dir):]
+        large_path = (settings.url_prefix +
+                self.large_path[len(settings.output_dir):])
+        small_path = (settings.url_prefix +
+                self.small_path[len(settings.output_dir):])
+        thumb_path = (settings.url_prefix +
+                self.thumb_path[len(settings.output_dir):])
         large_dim = '%ix%i' % self.resize_dims('large')
         small_dim = '%ix%i' % self.resize_dims('small')
         thumb_dim = '%ix%i' % self.resize_dims('thumb')

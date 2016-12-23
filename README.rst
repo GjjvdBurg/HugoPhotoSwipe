@@ -46,7 +46,9 @@ This creates a new HugoPhotoSwipe configuration file, called
 <https://en.wikipedia.org/wiki/YAML>`_.  In this configuration file, you need 
 to set at least the ``markdown_dir`` and ``output_dir`` variables.  These are 
 respectively the directory where the markdown needs to be placed and the 
-directory where the processed photos need to be placed.
+directory where the processed photos need to be placed. You may also want to 
+set the ``url_prefix`` variable, which is added before the path to the photo 
+files.
 
 Second, create a new album using::
 

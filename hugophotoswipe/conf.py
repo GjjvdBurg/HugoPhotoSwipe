@@ -23,6 +23,7 @@ SETTINGS_FILENAME = 'hugophotoswipe.yml'
 DEFAULTS = {
         'markdown_dir': None,
         'output_dir': None,
+        'url_prefix': '',
         'output_format': 'jpg',
         'dirname_large': 'large',
         'dirname_small': 'small',
