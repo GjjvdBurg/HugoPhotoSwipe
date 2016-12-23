@@ -12,7 +12,6 @@ setup(
         url="www.github.com/GjjvdBurg/HugoPhotoSwipe",
         author="Gertjan van den Burg",
         author_email="gertjanvandenburg@gmail.com",
-        keywords="<keywords>",
         license="GPL v3",
         packages=["hugophotoswipe"],
         scripts=['bin/hps'],
