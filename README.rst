@@ -28,8 +28,8 @@ directory for the shortcodes.
 Installation
 ------------
 
-First install either `SmartCrop.py <https://github.com/hhatto/smartcrop.py>`_.  
-This is used to create nice thumbnails (and unfortunately is not yet on PyPI).
+First install `SmartCrop.py <https://github.com/hhatto/smartcrop.py>`_.  This 
+is used to create nice thumbnails (and unfortunately is not yet on PyPI).
 
 Next, since HugoPhotoSwipe is available on PyPI, you can install it easily 
 with pip::
