@@ -171,6 +171,9 @@ class Photo(object):
         # find out the desired dimension
         maxdim = max(self.width, self.height)
         ratio = float(desired_max_dim)/float(maxdim)
+        # never scale up
+        ratio = min(ratio, 1.0)
+        # calculate new widths
         nwidth = int(ratio * self.width)
         nheight = int(ratio * self.height)
         return nwidth, nheight
