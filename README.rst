@@ -28,7 +28,11 @@ directory for the shortcodes.
 Installation
 ------------
 
-HugoPhotoSwipe is available on PyPI, so you can install it easily with pip::
+First install either `SmartCrop.py <https://github.com/hhatto/smartcrop.py>`_.  
+This is used to create nice thumbnails (and unfortunately is not yet on PyPI).
+
+Next, since HugoPhotoSwipe is available on PyPI, you can install it easily 
+with pip::
 
     pip install hugophotoswipe
 
@@ -94,6 +98,14 @@ to clean everything. This will of course not touch the original photo files.
 
 Notes
 =====
+
+I've noticed that thumbnails are slightly nicer with `SmartCrop.js 
+<https://github.com/jwagner/smartcrop.js>`_ than with `SmartCrop.py 
+<https://github.com/hhatto/smartcrop.py>`_. So, in the ``hugophotoswipe.yml`` 
+file, you can set the option ``use_smartcrop_js`` to ``True`` and the 
+``smartcrop_js_path`` to the path of the `smartcrop-cli.js 
+<https://github.com/jwagner/smartcrop-cli>`_ utility. This ensures thumbnails 
+are created with SmartCrop.js.
 
 HugoPhotoSwipe is free software, licensed under the GNU General Public 
 License, version 3 or later (GPLv3). Copyright G.J.J. van den Burg, all rights 
