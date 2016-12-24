@@ -1,15 +1,20 @@
 
+import os
 import re
 from setuptools import setup
 
-version = re.search("__version__ = '([^']+)'", 
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+version = re.search("__version__ = '([^']+)'",
         open('hugophotoswipe/__init__.py').read()).group(1)
 
 setup(
         name="hugophotoswipe",
         version=version,
         description="Tool for creating and managing PhotoSwipe albums in Hugo",
-        url="www.github.com/GjjvdBurg/HugoPhotoSwipe",
+        long_description=read('README.rst'),
+        url="https://www.github.com/GjjvdBurg/HugoPhotoSwipe",
         author="Gertjan van den Burg",
         author_email="gertjanvandenburg@gmail.com",
         license="GPL v3",
