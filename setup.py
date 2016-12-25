@@ -24,8 +24,8 @@ setup(
         classifiers=[
             'Development Status :: 4 - Beta',
             'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+            'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3 :: Only',
             'Programming Language :: Python :: 3.0',
             'Programming Language :: Python :: 3.1',
             'Programming Language :: Python :: 3.2',
@@ -34,4 +34,13 @@ setup(
             'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
             ],
+        install_requires = [
+            'six',
+            'tzlocal',
+            'pytz',
+            'smartcrop>=0.1',
+            ],
+        dependency_links = [
+            'https://github.com/hhatto/smartcrop.py/tarball/master#egg=smartcrop-0.1'
+            ]
         )

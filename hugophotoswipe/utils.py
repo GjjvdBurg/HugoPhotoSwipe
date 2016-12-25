@@ -12,7 +12,16 @@ from __future__ import print_function
 import errno
 import os
 
-from datetime import datetime, timezone
+import six
+
+from datetime import datetime
+
+if six.PY2:
+    from tzlocal import get_localzone
+    import pytz
+    input = raw_input
+else:
+    from datetime import timezone
 
 
 def mkdirs(path):
@@ -27,7 +36,11 @@ def mkdirs(path):
 
 def modtime():
     # Get current time as string
-    now = datetime.now(timezone.utc).astimezone()
+    if six.PY2:
+        local_tz = get_localzone()
+        now = datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(local_tz)
+    else:
+        now = datetime.now(timezone.utc).astimezone()
     nowstr = now.replace(microsecond=0).isoformat()
     return nowstr
 

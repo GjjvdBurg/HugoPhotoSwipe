@@ -89,7 +89,7 @@ class HugoPhotoSwipe(object):
     ####################
 
     def _load_albums(self):
-        local_objects = os.listdir()
+        local_objects = os.listdir('.')
         local_dirs = [o for o in local_objects if os.path.isdir(o)]
         album_dirs = [d.lstrip('./') for d in local_dirs]
         albums = []

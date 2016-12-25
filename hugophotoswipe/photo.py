@@ -15,11 +15,25 @@ import smartcrop
 
 from PIL import Image
 from functools import total_ordering
-from textwrap import wrap, indent
+from textwrap import wrap
 from subprocess import check_output
 
 from .conf import settings
 from .utils import mkdirs
+
+import six
+
+if six.PY2:
+    def indent(text, prefix, predicate=None):
+        if predicate is None:
+            def predicate(line):
+                return line.strip()
+        def prefixed_lines():
+            for line in text.splitlines(True):
+                yield (prefix + line if predicate(line) else line)
+        return ''.join(prefixed_lines())
+else:
+    from textwrap import indent
 
 
 @total_ordering
