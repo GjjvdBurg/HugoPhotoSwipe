@@ -112,7 +112,11 @@ class Album(object):
         else:
             coverpath = ''
 
-        proptxt = ["%s = \"%s\"" % (k, v) for k, v in self.properties.items()]
+        if self.properties is None:
+            proptxt = ['']
+        else:
+            proptxt = ["%s = \"%s\"" % (k, v) for k, v in 
+                    self.properties.items()]
 
         txt = [
                 "+++",
@@ -147,8 +151,8 @@ class Album(object):
             yaml_field_to_file(fid, self.title, 'title')
             yaml_field_to_file(fid, self.album_date, 'album_date',
                     force_string=True)
+            yaml_field_to_file(fid, None, 'properties')
             if self.properties:
-                yaml_field_to_file(fid, None, 'properties')
                 for name, field in self.properties.items():
                     yaml_field_to_file(fid, field, name, indent='  ')
             yaml_field_to_file(fid, self.copyright, 'copyright')
