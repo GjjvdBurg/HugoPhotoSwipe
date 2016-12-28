@@ -153,7 +153,7 @@ class Album(object):
                     force_string=True)
             yaml_field_to_file(fid, None, 'properties')
             if self.properties:
-                for name, field in self.properties.items():
+                for name, field in sorted(self.properties.items()):
                     yaml_field_to_file(fid, field, name, indent='  ')
             yaml_field_to_file(fid, self.copyright, 'copyright')
             yaml_field_to_file(fid, self.coverimage, 'coverimage')
