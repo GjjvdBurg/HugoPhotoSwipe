@@ -37,6 +37,9 @@ DEFAULTS = {
         'album_file': 'album.yml',
         'use_smartcrop_js': False,
         'smartcrop_js_path': None,
+        'jpeg_progressive': False,
+        'jpeg_optimize': False,
+        'jpeg_quality': 75
         }
 
 

@@ -21,7 +21,12 @@ The following options are available in the ``hugophotoswipe.yml`` file:
 | album_file | 'album.yml' | Name of YAML file with photo descriptions |
 | use_smartcrop_js | False | Use ``smartcrop-cli.js`` for thumbnails |
 | smartcrop_js_path | None | Path to ``smartcrop-cli.js`` executable |
+| jpeg_progressive | False | Output progressive JPEGs |
+| jpeg_optimize | False | Optimize JPEG output |
+| jpeg_quality | 75 | JPEG quality factor |
 
+Naturally, the jpeg options are only applied when ``output_format`` is 
+``jpg``.
 
 Shortcodes
 ==========

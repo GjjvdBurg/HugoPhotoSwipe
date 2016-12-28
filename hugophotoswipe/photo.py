@@ -106,7 +106,12 @@ class Photo(object):
         nimg = img.resize((nwidth, nheight), Image.ANTIALIAS)
 
         pth = self.large_path if mode == 'large' else self.small_path
-        nimg.save(pth)
+        if settings.output_format == 'jpg':
+            nimg.save(pth, optimize=settings.jpeg_optimize, 
+                    progressive=settings.jpeg_progressive, 
+                    quality=settings.jpeg_quality)
+        else:
+            nimg.save(pth)
         return pth
 
 
@@ -152,7 +157,13 @@ class Photo(object):
         # Create the filename and save the thumbnail
         if pth is None:
             pth = self.thumb_path
-        nimg.save(pth)
+
+        if settings.output_format == 'jpg':
+            nimg.save(pth, optimize=settings.jpeg_optimize, 
+                    progressive=settings.jpeg_progressive, 
+                    quality=settings.jpeg_quality)
+        else:
+            nimg.save(pth)
         return pth
 
 
