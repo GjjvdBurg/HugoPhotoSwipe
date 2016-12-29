@@ -16,7 +16,7 @@ update albums when photos change, and have responsive image sizes and
 thumbnails automatically generated. HugoPhotoSwipe makes all this easily 
 possible.
 
-See my blog post [here](https://gertjanvandenburg.com/blog/hugophotoswipe/) 
+See my blog post `here <https://gertjanvandenburg.com/blog/hugophotoswipe/>`_ 
 for more about my motivations for making this tool.
 
 How?
