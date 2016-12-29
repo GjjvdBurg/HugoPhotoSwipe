@@ -13,7 +13,7 @@ import hashlib
 import os
 import smartcrop
 
-from PIL import Image
+from PIL import Image, ExifTags
 from functools import total_ordering
 from textwrap import wrap
 from subprocess import check_output
@@ -69,6 +69,38 @@ class Photo(object):
     #              #
     ################
 
+    def open_original(self):
+        """ Open original image and if needed rotate it according to EXIF """
+        img = Image.open(self.original_path)
+
+        # if there is no exif data, simply return the image
+        exif = img._getexif()
+        if exif is None:
+            return img
+
+        # get the orientation tag code from the ExifTags dict
+        orientation = next((k for k, v in ExifTags.TAGS.items() if v == 
+            'Orientation'), None)
+        if orientation is None:
+            print("Couldn't find orientation tag in ExifTags.TAGS")
+            return img
+
+        # if no orientation is defined in the exif, return the image
+        if not orientation in exif:
+            return img
+
+        # rotate the image according to the exif
+        if exif[orientation] == 3:
+            return img.rotate(180, expand=True)
+        elif exif[orientation] == 6:
+            return img.rotate(270, expand=True)
+        elif exif[orientation] == 8:
+            return img.rotate(90, expand=True)
+
+        # fallback for unhandled rotation tags
+        return img
+
+
     def has_sizes(self):
         if self.name is None:
             return False
@@ -97,7 +129,7 @@ class Photo(object):
 
     def create_rescaled(self, mode):
         # open the image
-        img = Image.open(self.original_path)
+        img = self.open_original()
 
         # get the desired dimensions
         nwidth, nheight = self.resize_dims(mode)
@@ -135,7 +167,7 @@ class Photo(object):
         crop_options['height'] = 100
 
         # Calculate the optimal crop size
-        img = Image.open(self.original_path)
+        img = self.open_original()
         if not img.mode in ['RGB', 'RGBA']:
             newimg = Image.new('RGB', img.size)
             newimg.paste(img)
@@ -148,7 +180,7 @@ class Photo(object):
                 ret['topCrop']['height'] + ret['topCrop']['y'])
 
         # Do the actual crop
-        img = Image.open(self.original_path)
+        img = self.open_original()
         nimg = img.crop(box)
         if dim is None:
             dim = settings.dim_thumbnail
@@ -296,7 +328,7 @@ class Photo(object):
     @property
     def width(self):
         if self.__width is None:
-            img = Image.open(self.original_path)
+            img = self.open_original()
             self.__width = img.width
         return self.__width
 
@@ -304,7 +336,7 @@ class Photo(object):
     @property
     def height(self):
         if self.__height is None:
-            img = Image.open(self.original_path)
+            img = self.open_original()
             self.__height = img.height
         return self.__height
 
