@@ -9,10 +9,13 @@ License: GPL v3.
 
 import os
 import yaml
+import warnings
 
 from . import __version__
 from .utils import yaml_field_to_file
 
+# Always show deprecationwarnings
+warnings.simplefilter('always', DeprecationWarning)
 
 # HugoPhotoSwipe version
 VERSION = __version__
@@ -30,8 +33,10 @@ DEFAULTS = {
         'dirname_thumb': 'thumb',
         'dim_max_large': 1600,
         'dim_max_small': 800,
-        'dim_thumbnail': 256,
-        'dim_coverimage': 600,
+        'dim_max_thumb': 256,
+        'dim_max_cover': 600,
+        'square_thumbnails': True,
+        'square_coverimage': True,
         'cover_filename': 'coverimage.jpg',
         'photo_dir': 'photos',
         'album_file': 'album.yml',
@@ -46,6 +51,22 @@ DEFAULTS = {
 class Settings(object):
     def __init__(self, **entries):
         self.__dict__.update(DEFAULTS)
+
+        if 'dim_thumbnail' in entries:
+            warnings.warn("The 'dim_thumbnail' option has been replaced by "
+                    "the 'dim_max_thumb' option in version 0.0.7. Your "
+                    "hugophotoswipe.yml file will be updated.", 
+                    DeprecationWarning)
+            entries['dim_max_thumb'] = entries['dim_thumbnail']
+            del entries['dim_thumbnail']
+        if 'dim_coverimage' in entries:
+            warnings.warn("The 'dim_coverimage' option has been replaced by "
+                    "the 'dim_max_cover' option in version 0.0.7. Your "
+                    "hugophotoswipe.yml file will be updated.", 
+                    DeprecationWarning)
+            entries['dim_max_cover'] = entries['dim_coverimage']
+            del entries['dim_coverimage']
+
         self.__dict__.update(entries)
 
     def dump(self, dirname=None):

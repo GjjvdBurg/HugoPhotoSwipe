@@ -14,8 +14,10 @@ The following options are available in the ``hugophotoswipe.yml`` file:
 | dirname_thumb | 'thumb' | Name of directory for thumbnails |
 | dim_max_large | 1600 | Maximum large image size |
 | dim_max_small | 800 | Maximum small image size |
-| dim_thumbnail | 256 | Thumbnail dimensions (always square) |
-| dim_coverimage | 600 | Coverimage dimensions (always square) |
+| dim_max_thumb | 256 | Maximum thumbnail dimensions |
+| dim_max_cover | 600 | Maximum cover image dimensions |
+| square_thumbnails | True | Thumbnails should be square |
+| square_coverimage | True | Cover images should be square |
 | cover_filename | 'coverimage.jpg' | Name of coverimage file |
 | photo_dir | 'photos' | Name of directory in album where photos are stored |
 | album_file | 'album.yml' | Name of YAML file with photo descriptions |

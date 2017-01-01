@@ -12,6 +12,7 @@ from __future__ import print_function
 import hashlib
 import os
 import smartcrop
+import tempfile
 
 from PIL import Image, ExifTags
 from functools import total_ordering
@@ -122,9 +123,9 @@ class Photo(object):
             return
         self.create_rescaled('large')
         self.create_rescaled('small')
-        self.create_thumb()
+        self.create_thumb(mode='thumb', pth=self.thumb_path)
         if not self.cover_path is None:
-            self.create_thumb(dim=settings.dim_coverimage, pth=self.cover_path)
+            self.create_thumb(mode='cover', pth=self.cover_path)
 
 
     def create_rescaled(self, mode):
@@ -147,32 +148,40 @@ class Photo(object):
         return pth
 
 
-    def create_thumb(self, dim=None, pth=None):
+    def create_thumb(self, mode=None, pth=None):
         if settings.use_smartcrop_js:
             if settings.smartcrop_js_path is None:
                 print("Error: smartcrop.js requested but path not set.\n"
                         "Using SmartCrop.py as fallback.")
-                self.create_thumb_py(dim=dim, pth=pth)
+                self.create_thumb_py(mode=mode, pth=pth)
             else:
-                self.create_thumb_js(dim=dim, pth=pth)
+                self.create_thumb_js(mode=mode, pth=pth)
         else:
-            self.create_thumb_py(dim=dim, pth=pth)
+            self.create_thumb_py(mode=mode, pth=pth)
 
 
-    def create_thumb_py(self, dim=None, pth=None):
+    def create_thumb_py(self, mode=None, pth=None):
+        """ Create the thumbnail using SmartCrop.py """
+        if pth is None:
+            raise ValueError("path can't be None")
+
         # Load smartcrop and set options
         sc = smartcrop.SmartCrop()
         crop_options = smartcrop.DEFAULTS
-        crop_options['width'] = 100
-        crop_options['height'] = 100
 
-        # Calculate the optimal crop size
+        # Get desired dimensions
+        nwidth, nheight = self.resize_dims(mode)
+        crop_options['width'] = nwidth
+        crop_options['height'] = nheight
+
+        # Fix image mode if necessary
         img = self.open_original()
         if not img.mode in ['RGB', 'RGBA']:
             newimg = Image.new('RGB', img.size)
             newimg.paste(img)
             img = newimg
 
+        # Calculate the optimal crop size
         ret = sc.crop(img, crop_options)
         box = (ret['topCrop']['x'],
                 ret['topCrop']['y'],
@@ -182,14 +191,9 @@ class Photo(object):
         # Do the actual crop
         img = self.open_original()
         nimg = img.crop(box)
-        if dim is None:
-            dim = settings.dim_thumbnail
-        nimg.thumbnail((dim, dim), Image.ANTIALIAS)
+        nimg.thumbnail((nwidth, nheight), Image.ANTIALIAS)
 
         # Create the filename and save the thumbnail
-        if pth is None:
-            pth = self.thumb_path
-
         if settings.output_format == 'jpg':
             nimg.save(pth, optimize=settings.jpeg_optimize, 
                     progressive=settings.jpeg_progressive, 
@@ -199,31 +203,48 @@ class Photo(object):
         return pth
 
 
-    def create_thumb_js(self, dim=None, pth=None):
-        # Load smartcrop and set options
-        if dim is None:
-            dim = settings.dim_thumbnail
+    def create_thumb_js(self, mode=None, pth=None):
+        """ Create the thumbnail using SmartCrop.js """
         if pth is None:
-            pth = self.thumb_path
+            raise ValueError("path can't be None")
 
-        command = [settings.smartcrop_js_path, '--width', str(dim), '--height', 
-                str(dim), self.original_path, pth]
+        # save a copy of the image with the correct orientation in a temporary 
+        # file
+        img = self.open_original()
+        _, tmpfname = tempfile.mkstemp(suffix='.'+settings.output_format)
+        img.save(tmpfname, quality=95)
+
+        # Load smartcrop and set options
+        nwidth, nheight = self.resize_dims(mode)
+        command = [settings.smartcrop_js_path, '--width', str(nwidth), 
+                '--height', str(nheight), tmpfname, pth]
         check_output(command)
+
+        # remove the temporary file
+        os.remove(tmpfname)
 
         return pth
 
 
     def resize_dims(self, mode):
         """ Calculate the width and height of the resized image """
-        if not mode in ['large', 'small', 'thumb']:
-            raise ValueError("Unkown mode provided")
 
         if mode == 'large':
             desired_max_dim = settings.dim_max_large
         elif mode == 'small':
             desired_max_dim = settings.dim_max_small
+        elif mode == 'thumb':
+            if settings.square_thumbnails:
+                return (settings.dim_max_thumb, settings.dim_max_thumb)
+            else:
+                desired_max_dim = settings.dim_max_thumb
+        elif mode == 'cover':
+            if settings.square_coverimage:
+                return (settings.dim_max_cover, settings.dim_max_cover)
+            else:
+                desired_max_dim = settings.dim_max_cover
         else:
-            return (settings.dim_thumbnail, settings.dim_thumbnail)
+            raise ValueError("Unkown mode provided")
 
         # find out the desired dimension
         maxdim = max(self.width, self.height)
