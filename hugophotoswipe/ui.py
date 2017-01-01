@@ -12,7 +12,7 @@ from __future__ import print_function
 import argparse
 
 from .hugophotoswipe import HugoPhotoSwipe
-
+from .conf import settings
 
 def main():
     command, album = parse_args()
@@ -27,6 +27,7 @@ def main():
         hps.init()
     else:
         raise ValueError("Unknown command: %s" % command)
+    settings.dump('.')
 
 
 def parse_args():
