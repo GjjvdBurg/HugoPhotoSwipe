@@ -38,6 +38,8 @@ setup(
             'six',
             'tzlocal',
             'pytz',
+            'pyyaml',
+            'tqdm',
             'smartcrop>=0.1',
             ],
         dependency_links = [
