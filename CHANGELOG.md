@@ -1,5 +1,10 @@
 # Change Log
 
+## Version 0.0.9
+
+- Allow for non-album directories
+- Add settings file validation
+
 ## Version 0.0.8
 
 - Added all dependencies to setup.py
