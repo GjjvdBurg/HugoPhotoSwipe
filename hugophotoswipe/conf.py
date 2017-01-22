@@ -70,12 +70,27 @@ class Settings(object):
         self.__dict__.update(entries)
 
     def dump(self, dirname=None):
+        """ Write settings to yaml file """
         dirname = '' if dirname is None else dirname
         pth = os.path.join(dirname, SETTINGS_FILENAME)
         with open(pth, 'w') as fid:
             fid.write('---\n')
             for key in sorted(self.__dict__.keys()):
                 yaml_field_to_file(fid, getattr(self, key), key)
+
+    def validate(self):
+        """ Check settings for consistency """
+        prefix = "Error in settings file: "
+        if self.markdown_dir is None:
+            print(prefix + "markdown_dir can't be empty")
+            return False
+        if self.output_dir is None:
+            print(prefix + "output_dir can't be empty")
+            return False
+        if self.use_smartcrop_js and self.smartcrop_js_path is None:
+            print(prefix + "smartcrop.js requested but path not set")
+            return False
+        return True
 
 
 def load_settings():

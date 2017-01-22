@@ -12,7 +12,7 @@ from __future__ import print_function
 import os
 
 from .album import Album
-from .conf import settings, SETTINGS_FILENAME
+from .conf import settings
 from .utils import mkdirs, modtime
 
 
@@ -42,12 +42,6 @@ class HugoPhotoSwipe(object):
         album = Album(album_dir=album_dir, creation_time=modtime())
         album.dump()
         print("New album created.")
-
-
-    def init(self):
-        """ Initialize HugoPhotoSwipe in working dir """
-        settings.dump('.')
-        print("Created settings file: %s" % SETTINGS_FILENAME)
 
 
     def update(self, name=None):

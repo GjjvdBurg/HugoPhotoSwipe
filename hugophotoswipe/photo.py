@@ -150,12 +150,7 @@ class Photo(object):
 
     def create_thumb(self, mode=None, pth=None):
         if settings.use_smartcrop_js:
-            if settings.smartcrop_js_path is None:
-                print("Error: smartcrop.js requested but path not set.\n"
-                        "Using SmartCrop.py as fallback.")
-                self.create_thumb_py(mode=mode, pth=pth)
-            else:
-                self.create_thumb_js(mode=mode, pth=pth)
+            self.create_thumb_js(mode=mode, pth=pth)
         else:
             self.create_thumb_py(mode=mode, pth=pth)
 

@@ -12,10 +12,19 @@ from __future__ import print_function
 import argparse
 
 from .hugophotoswipe import HugoPhotoSwipe
-from .conf import settings
+from .conf import settings, SETTINGS_FILENAME
 
 def main():
     command, album = parse_args()
+
+    if command == 'init':
+        settings.dump('.')
+        print("Created settings file: %s" % SETTINGS_FILENAME)
+        return
+
+    if not settings.validate():
+        return
+
     hps = HugoPhotoSwipe()
     if command == 'new':
         hps.new(name=album)
@@ -23,8 +32,6 @@ def main():
         hps.update(name=album)
     elif command == 'clean':
         hps.clean(name=album)
-    elif command == 'init':
-        hps.init()
     else:
         raise ValueError("Unknown command: %s" % command)
     settings.dump('.')
