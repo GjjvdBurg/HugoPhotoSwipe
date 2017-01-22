@@ -42,8 +42,8 @@ Usage
 
 Create a new directory for HugoPhotoSwipe and switch to it. For instance::
 
-    mkdir photos
-    cd photos
+    mkdir hugophotos
+    cd hugophotos
 
 Next, initialize a HugoPhotoSwipe configuration with::
 
