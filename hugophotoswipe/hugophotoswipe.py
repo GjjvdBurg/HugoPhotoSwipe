@@ -95,5 +95,7 @@ class HugoPhotoSwipe(object):
         albums = []
         for album_dir in album_dirs:
             album = Album.load(album_dir)
+            if album is None:
+                continue
             albums.append(album)
         return albums

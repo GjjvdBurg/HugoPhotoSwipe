@@ -40,7 +40,12 @@ After installation, you should be left with a ``hps`` program.
 Usage
 -----
 
-First, initialize a new HugoPhotoSwipe directory with::
+Create a new directory for HugoPhotoSwipe and switch to it. For instance::
+
+    mkdir photos
+    cd photos
+
+Next, initialize a HugoPhotoSwipe configuration with::
 
     hps init
 
@@ -53,7 +58,7 @@ directory where the processed photos need to be placed. You may also want to
 set the ``url_prefix`` variable, which is added before the path to the photo 
 files.
 
-Second, create a new album using::
+Create a new album using::
 
     hps new
 
