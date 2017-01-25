@@ -318,12 +318,11 @@ class Photo(object):
 
     @property
     def shortcode(self):
-        large_path = (('' if settings.url_prefix is None else settings.url_prefix)  +
-                self.large_path[len(settings.output_dir):]).replace('\\','/')
-        small_path = (('' if settings.url_prefix is None else settings.url_prefix) +
-                self.small_path[len(settings.output_dir):]).replace('\\','/')
-        thumb_path = (('' if settings.url_prefix is None else settings.url_prefix) +
-                self.thumb_path[len(settings.output_dir):]).replace('\\','/')
+        prefix = '' if settings.url_prefix is None else settings.url_prefix
+        L = len(settings.output_dir)
+        large_path = (prefix + self.large_path[L:]).replace('\\','/')
+        small_path = (prefix + self.small_path[L:]).replace('\\','/')
+        thumb_path = (prefix + self.thumb_path[L:]).replace('\\','/')
         large_dim = '%ix%i' % self.resize_dims('large')
         small_dim = '%ix%i' % self.resize_dims('small')
         thumb_dim = '%ix%i' % self.resize_dims('thumb')
