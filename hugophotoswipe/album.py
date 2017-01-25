@@ -121,7 +121,7 @@ class Album(object):
         txt = [
                 "+++",
                 "title = \"%s\"" % self.title,
-                "date = \"%s\"" % self.album_date,
+                "date = \"%s\"" % self.album_date if self.album_date != None else "",
                 "%s" % ('\n'.join(proptxt)),
                 "cover = \"%s\"" % coverpath,
                 "+++",

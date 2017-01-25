@@ -254,7 +254,8 @@ class Photo(object):
 
     @property
     def clean_name(self):
-        return self.name.lower().replace(' ', '_')
+        f, ext = os.path.splitext(self.name.lower().replace(' ', '_'))
+        return f
 
 
     @property
@@ -317,12 +318,12 @@ class Photo(object):
 
     @property
     def shortcode(self):
-        large_path = (settings.url_prefix +
-                self.large_path[len(settings.output_dir):])
-        small_path = (settings.url_prefix +
-                self.small_path[len(settings.output_dir):])
-        thumb_path = (settings.url_prefix +
-                self.thumb_path[len(settings.output_dir):])
+        large_path = (('' if settings.url_prefix is None else settings.url_prefix)  +
+                self.large_path[len(settings.output_dir):]).replace('\\','/')
+        small_path = (('' if settings.url_prefix is None else settings.url_prefix) +
+                self.small_path[len(settings.output_dir):]).replace('\\','/')
+        thumb_path = (('' if settings.url_prefix is None else settings.url_prefix) +
+                self.thumb_path[len(settings.output_dir):]).replace('\\','/')
         large_dim = '%ix%i' % self.resize_dims('large')
         small_dim = '%ix%i' % self.resize_dims('small')
         thumb_dim = '%ix%i' % self.resize_dims('thumb')
