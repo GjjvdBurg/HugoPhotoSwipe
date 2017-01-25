@@ -1,5 +1,12 @@
 # Change Log
 
+## Version 0.0.10
+
+- Bugfix for Windows paths
+- Don't include extension in photo name
+- Bugfixes for default configurations
+Thanks to @halogenica for identifying and fixing these bugs!
+
 ## Version 0.0.9
 
 - Allow for non-album directories
