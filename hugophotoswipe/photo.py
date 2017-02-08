@@ -20,7 +20,7 @@ from textwrap import wrap
 from subprocess import check_output
 
 from .conf import settings
-from .utils import mkdirs
+from .utils import mkdirs, cached_property
 
 import six
 
@@ -47,13 +47,6 @@ class Photo(object):
 
         # paths
         self.original_path = original_path
-        self.__large_path = None
-        self.__small_path = None
-        self.__thumb_path = None
-
-        # sizes
-        self.__width = None
-        self.__height = None
 
         # names
         self.name = name
@@ -70,7 +63,8 @@ class Photo(object):
     #              #
     ################
 
-    def open_original(self):
+    @cached_property
+    def original_image(self):
         """ Open original image and if needed rotate it according to EXIF """
         img = Image.open(self.original_path)
 
@@ -129,14 +123,11 @@ class Photo(object):
 
 
     def create_rescaled(self, mode):
-        # open the image
-        img = self.open_original()
-
         # get the desired dimensions
         nwidth, nheight = self.resize_dims(mode)
 
         # resize the image with PIL
-        nimg = img.resize((nwidth, nheight), Image.ANTIALIAS)
+        nimg = self.original_image.resize((nwidth, nheight), Image.ANTIALIAS)
 
         pth = self.large_path if mode == 'large' else self.small_path
         if settings.output_format == 'jpg':
@@ -170,7 +161,7 @@ class Photo(object):
         crop_options['height'] = nheight
 
         # Fix image mode if necessary
-        img = self.open_original()
+        img = self.original_image
         if not img.mode in ['RGB', 'RGBA']:
             newimg = Image.new('RGB', img.size)
             newimg.paste(img)
@@ -184,8 +175,7 @@ class Photo(object):
                 ret['topCrop']['height'] + ret['topCrop']['y'])
 
         # Do the actual crop
-        img = self.open_original()
-        nimg = img.crop(box)
+        nimg = self.original_image.crop(box)
         nimg.thumbnail((nwidth, nheight), Image.ANTIALIAS)
 
         # Create the filename and save the thumbnail
@@ -205,9 +195,8 @@ class Photo(object):
 
         # save a copy of the image with the correct orientation in a temporary 
         # file
-        img = self.open_original()
         _, tmpfname = tempfile.mkstemp(suffix='.'+settings.output_format)
-        img.save(tmpfname, quality=95)
+        self.original_image.save(tmpfname, quality=95)
 
         # Load smartcrop and set options
         nwidth, nheight = self.resize_dims(mode)
@@ -258,43 +247,37 @@ class Photo(object):
         return f
 
 
-    @property
+    @cached_property
     def large_path(self):
-        if self.__large_path is None:
-            thedir = os.path.join(settings.output_dir, self.album_name, 
-                    settings.dirname_large)
-            mkdirs(thedir)
-            width, height = self.resize_dims('large')
-            fname = '%s_%ix%i.%s' % (self.clean_name, width, height, 
-                    settings.output_format)
-            self.__large_path = os.path.join(thedir, fname)
-        return self.__large_path
+        thedir = os.path.join(settings.output_dir, self.album_name, 
+                settings.dirname_large)
+        mkdirs(thedir)
+        width, height = self.resize_dims('large')
+        fname = '%s_%ix%i.%s' % (self.clean_name, width, height, 
+                settings.output_format)
+        return os.path.join(thedir, fname)
 
 
-    @property
+    @cached_property
     def small_path(self):
-        if self.__small_path is None:
-            thedir = os.path.join(settings.output_dir, self.album_name, 
-                    settings.dirname_small)
-            mkdirs(thedir)
-            width, height = self.resize_dims('small')
-            fname = '%s_%ix%i.%s' % (self.clean_name, width, height, 
-                    settings.output_format)
-            self.__small_path = os.path.join(thedir, fname)
-        return self.__small_path
+        thedir = os.path.join(settings.output_dir, self.album_name, 
+                settings.dirname_small)
+        mkdirs(thedir)
+        width, height = self.resize_dims('small')
+        fname = '%s_%ix%i.%s' % (self.clean_name, width, height, 
+                settings.output_format)
+        return os.path.join(thedir, fname)
 
 
-    @property
+    @cached_property
     def thumb_path(self):
-        if self.__thumb_path is None:
-            thedir = os.path.join(settings.output_dir, self.album_name, 
-                    settings.dirname_thumb)
-            mkdirs(thedir)
-            width, height = self.resize_dims('thumb')
-            fname = '%s_%ix%i.%s' % (self.clean_name, width, height, 
-                    settings.output_format)
-            self.__thumb_path = os.path.join(thedir, fname)
-        return self.__thumb_path
+        thedir = os.path.join(settings.output_dir, self.album_name, 
+                settings.dirname_thumb)
+        mkdirs(thedir)
+        width, height = self.resize_dims('thumb')
+        fname = '%s_%ix%i.%s' % (self.clean_name, width, height, 
+                settings.output_format)
+        return os.path.join(thedir, fname)
 
 
     @property
@@ -343,18 +326,12 @@ class Photo(object):
 
     @property
     def width(self):
-        if self.__width is None:
-            img = self.open_original()
-            self.__width = img.width
-        return self.__width
+        return self.original_image.width
 
 
     @property
     def height(self):
-        if self.__height is None:
-            img = self.open_original()
-            self.__height = img.height
-        return self.__height
+        return self.original_image.height
 
 
     def __key(self):

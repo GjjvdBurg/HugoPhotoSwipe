@@ -72,3 +72,25 @@ def question_yes_no(question, default=True):
             return default
         else:
             print("No valid input, please try again.")
+
+
+class cached_property(object):
+    """
+
+    Decorator that converts a method with a single self argument into a 
+    property cached on the instance.
+
+    From Django: 
+    https://github.com/django/django/blob/master/django/utils/functional.py
+
+    """
+    def __init__(self, func, name=None):
+        self.func = func
+        self.__doc__ = getattr(func, "__doc__")
+        self.name = name or func.__name__
+
+    def __get__(self, instance, cls=None):
+        if instance is None:
+            return self
+        res = instance.__dict__[self.name] = self.func(instance)
+        return res
