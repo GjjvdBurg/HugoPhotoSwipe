@@ -1,10 +1,17 @@
 # Change Log
 
+## Version 0.0.11
+
+- Speed improvements by using cached_property
+- Cosmetic improvements (progressbar, copyright field)
+- Documentation improvements (photo shortcode)
+
 ## Version 0.0.10
 
 - Bugfix for Windows paths
 - Don't include extension in photo name
 - Bugfixes for default configurations
+
 Thanks to @halogenica for identifying and fixing these bugs!
 
 ## Version 0.0.9
