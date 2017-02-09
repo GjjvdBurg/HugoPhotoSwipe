@@ -45,7 +45,9 @@ itemtype="https://schema.org/ImageObject">
   </a>
   <figcaption itemprop="caption description">
     {{ .Get "caption"}}
+    {{ if (not (eq (.Get "copyright") "")) }}
     <span itemprop="copyrightHolder">&#169; {{ .Get "copyright"}}</span>
+    {{ end }}
   </figcaption>
 </figure>
 ```
@@ -396,5 +398,5 @@ a Hugo layout.
     </div>
   </div>
 </main>
-<script src="{{ .Site.BaseURL }}js/pswp/pswp_gallery.js"></script>
+<script src="{{ .Site.BaseURL }}js/pswp_gallery.js"></script>
 ```
