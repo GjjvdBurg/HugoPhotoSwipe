@@ -161,7 +161,7 @@ class Photo(object):
         crop_options['height'] = nheight
 
         # Fix image mode if necessary
-        img = self.original_image
+        img = self.original_image.copy()
         if not img.mode in ['RGB', 'RGBA']:
             newimg = Image.new('RGB', img.size)
             newimg.paste(img)
@@ -176,6 +176,7 @@ class Photo(object):
 
         # Do the actual crop
         nimg = self.original_image.crop(box)
+        nimg.load()
         nimg.thumbnail((nwidth, nheight), Image.ANTIALIAS)
 
         # Create the filename and save the thumbnail
