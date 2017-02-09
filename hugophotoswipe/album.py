@@ -204,8 +204,6 @@ class Album(object):
             photo = Photo(album_name=album.name, original_path=photo_path,
                     name=p['name'], alt=p['alt'], caption=caption,
                     copyright=album.copyright)
-            if photo.filename == album.coverimage:
-                photo.cover_path = album.cover_path
             all_photos.append(photo)
 
         album.photos = []
@@ -241,6 +239,13 @@ class Album(object):
                 to_remove.append(photo)
         for photo in to_remove:
             self.photos.remove(photo)
+
+        # set the coverpath to the photo that should be the cover image
+        for photo in self.photos:
+            if photo.filename == self.coverimage:
+                photo.cover_path = self.cover_path
+            else:
+                photo.cover_path = None
 
         # Iterate over all photos and create new resizes if they don't
         # exist yet, or the hash in self.hashes is different than the hash of
