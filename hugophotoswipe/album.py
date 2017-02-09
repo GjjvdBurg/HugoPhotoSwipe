@@ -259,7 +259,7 @@ class Album(object):
         to_process = [p for p in self.photos if not (p.has_sizes() and (
             hash(p) == photo_hashes[p]))]
         if to_process:
-            for photo in tqdm(to_process, desc='Progress: '):
+            for photo in tqdm(to_process, desc='Progress'):
                 photo.create_sizes()
 
         # Overwrite the markdown file
