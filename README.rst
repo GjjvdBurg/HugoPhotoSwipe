@@ -40,6 +40,10 @@ After installation, you should be left with a ``hps`` program.
 Usage
 -----
 
+*This is a brief overview. See the 
+[Wiki](https://github.com/GjjvdBurg/HugoPhotoSwipe/wiki) for a full 
+description.*
+
 Create a new directory for HugoPhotoSwipe and switch to it. For instance::
 
     mkdir hugophotos
