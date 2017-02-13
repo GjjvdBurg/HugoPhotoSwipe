@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.0.12
+
+- Use triple-quoted strings in TOML front matter property fields
+
 ## Version 0.0.11
 
 - Speed improvements by using cached_property
