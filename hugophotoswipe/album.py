@@ -115,7 +115,7 @@ class Album(object):
         if self.properties is None:
             proptxt = ['']
         else:
-            proptxt = ["%s = \"%s\"" % (k, v) for k, v in 
+            proptxt = ["%s = \"\"\"%s\"\"\"" % (k, v) for k, v in 
                     self.properties.items()]
 
         txt = [
