@@ -9,6 +9,7 @@ License: GPL v3.
 
 from __future__ import print_function
 
+import logging
 import os
 import shutil
 import yaml
@@ -98,8 +99,12 @@ class Album(object):
             return
 
         if have_md:
+            logging.info("[%s] Removing markdown file: %s" % (self.name, 
+                self.markdown_file))
             os.unlink(self.markdown_file)
         if have_out:
+            logging.info("[%s] Removing images directory: %s" % (self.name, 
+                output_dir))
             shutil.rmtree(output_dir)
 
 
@@ -231,6 +236,8 @@ class Album(object):
                         original_path=os.path.join(photo_dir, f), name=f,
                         copyright=self.copyright)
                 self.photos.append(pho)
+        logging.info("[%s] Found %i photos from yaml and photos dir" % 
+                (self.name, len(self.photos)))
 
         # Remove the photos whose files don't exist anymore
         to_remove = []
@@ -239,6 +246,8 @@ class Album(object):
                 to_remove.append(photo)
         for photo in to_remove:
             self.photos.remove(photo)
+        logging.info("[%s] Removed %i photos that have been deleted." % 
+                (self.name, len(to_remove)))
 
         # set the coverpath to the photo that should be the cover image
         for photo in self.photos:
@@ -258,14 +267,20 @@ class Album(object):
 
         to_process = [p for p in self.photos if not (p.has_sizes() and (
             hash(p) == photo_hashes[p]))]
+        logging.info("[%s] There are %i photos to process." % (self.name, 
+            len(to_process)))
         if to_process:
-            for photo in tqdm(to_process, desc='Progress'):
+            iterator = iter(to_process) if settings.verbose else tqdm(
+                    to_process, desc='Progress')
+            for photo in iterator:
                 photo.create_sizes()
 
         # Overwrite the markdown file
+        logging.info("[%s] Writing markdown file." % self.name)
         self.create_markdown()
 
         # Overwrite the yaml file of the album
+        logging.info("[%s] Saving album yaml." % self.name)
         self.dump()
 
 

@@ -9,6 +9,7 @@ License: GPL v3.
 
 from __future__ import print_function
 
+import logging
 import os
 
 from .album import Album
@@ -37,9 +38,12 @@ class HugoPhotoSwipe(object):
         if os.path.exists(album_dir):
             print("Can't create album with this name, it exists already.")
             raise SystemExit
+        logging.info("Creating album directory")
         mkdirs(album_dir)
+        logging.info("Creating album photos directory")
         mkdirs(os.path.join(album_dir, settings.photo_dir))
         album = Album(album_dir=album_dir, creation_time=modtime())
+        logging.info("Saving album yaml")
         album.dump()
         print("New album created.")
 
@@ -88,6 +92,7 @@ class HugoPhotoSwipe(object):
         album_dirs = [d.lstrip('./') for d in local_dirs]
         albums = []
         for album_dir in album_dirs:
+            logging.info("Loading album from dir: %s" % album_dir)
             album = Album.load(album_dir)
             if album is None:
                 continue

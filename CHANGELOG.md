@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.0.13
+
+- Added verbose mode
+
 ## Version 0.0.12
 
 - Use triple-quoted strings in TOML front matter property fields

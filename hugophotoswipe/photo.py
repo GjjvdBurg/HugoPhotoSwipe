@@ -10,6 +10,7 @@ License: GPL v3.
 from __future__ import print_function
 
 import hashlib
+import logging
 import os
 import smartcrop
 import tempfile
@@ -115,21 +116,29 @@ class Photo(object):
         if self.name is None:
             print("Skipping file: %s. No name defined." % self.filename)
             return
+        logging.info("[%s] Creating large size." % self.name)
         self.create_rescaled('large')
+        logging.info("[%s] Creating small size." % self.name)
         self.create_rescaled('small')
+        logging.info("[%s] Creating thumbnail size." % self.name)
         self.create_thumb(mode='thumb', pth=self.thumb_path)
         if not self.cover_path is None:
+            logging.info("[%s] Creating thumbnail for cover image." % 
+                    self.name)
             self.create_thumb(mode='cover', pth=self.cover_path)
 
 
     def create_rescaled(self, mode):
         # get the desired dimensions
         nwidth, nheight = self.resize_dims(mode)
+        logging.info("[%s] Creating %s image of dimensions: %ix%i" % 
+                (self.name, mode, nwidth, nheight))
 
         # resize the image with PIL
         nimg = self.original_image.resize((nwidth, nheight), Image.ANTIALIAS)
 
         pth = self.large_path if mode == 'large' else self.small_path
+        logging.info("[%s] Saving %s image to %s" % (self.name, mode, pth))
         if settings.output_format == 'jpg':
             nimg.save(pth, optimize=settings.jpeg_optimize, 
                     progressive=settings.jpeg_progressive, 
@@ -159,6 +168,8 @@ class Photo(object):
         nwidth, nheight = self.resize_dims(mode)
         crop_options['width'] = nwidth
         crop_options['height'] = nheight
+        logging.info("[%s] SmartCrop.py new dimensions: %ix%i" % (self.name, 
+            nwidth, nheight))
 
         # Fix image mode if necessary
         img = self.original_image.copy()
@@ -168,6 +179,8 @@ class Photo(object):
             img = newimg
 
         # Calculate the optimal crop size
+        logging.info("[%s] SmartCrop.py computing optimal crop size." % 
+                self.name)
         ret = sc.crop(img, crop_options)
         box = (ret['topCrop']['x'],
                 ret['topCrop']['y'],
@@ -180,6 +193,7 @@ class Photo(object):
         nimg.thumbnail((nwidth, nheight), Image.ANTIALIAS)
 
         # Create the filename and save the thumbnail
+        logging.info("[%s] Saving SmartCrop.py thumbnail." % self.name)
         if settings.output_format == 'jpg':
             nimg.save(pth, optimize=settings.jpeg_optimize, 
                     progressive=settings.jpeg_progressive, 
@@ -201,8 +215,11 @@ class Photo(object):
 
         # Load smartcrop and set options
         nwidth, nheight = self.resize_dims(mode)
+        logging.info("[%s] SmartCrop.js new dimensions: %ix%i" % (self.name, 
+            nwidth, nheight))
         command = [settings.smartcrop_js_path, '--width', str(nwidth), 
                 '--height', str(nheight), tmpfname, pth]
+        logging.info("[%s] SmartCrop.js running crop command." % self.name)
         check_output(command)
 
         # remove the temporary file
@@ -235,6 +252,8 @@ class Photo(object):
         maxdim = max(self.width, self.height)
         ratio = float(desired_max_dim)/float(maxdim)
         # never scale up
+        if ratio > 1.0:
+            logging.warning("[%s] Not scaling up." % self.name)
         ratio = min(ratio, 1.0)
         # calculate new widths
         nwidth = int(ratio * self.width)

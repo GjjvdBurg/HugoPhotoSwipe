@@ -44,7 +44,8 @@ DEFAULTS = {
         'smartcrop_js_path': None,
         'jpeg_progressive': False,
         'jpeg_optimize': False,
-        'jpeg_quality': 75
+        'jpeg_quality': 75,
+        'verbose': False
         }
 
 
