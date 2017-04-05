@@ -50,6 +50,8 @@ def parse_args():
     parser.add_argument('-v', '--verbose', help="Verbose mode", 
             action="store_const", dest="loglevel", const=logging.INFO, 
             default=logging.WARNING)
+    parser.add_argument('-f', '--fast', action="store_true", help=('Fast mode '
+        '(tries less potential crops)'))
     parser.add_argument('command', choices=['new', 'update', 'clean', 'init'],
             help="action to do")
     parser.add_argument('album', nargs='?',
@@ -58,6 +60,7 @@ def parse_args():
     logging.basicConfig(level=args.loglevel, datefmt="[%Y-%m-%d %H:%M:%S]",
             format="%(asctime)s - %(message)s")
     settings.verbose = args.loglevel == logging.INFO
+    settings.fast = args.fast
     return args.command, args.album
 
 

@@ -166,8 +166,11 @@ class Photo(object):
 
         # Get desired dimensions
         nwidth, nheight = self.resize_dims(mode)
-        crop_options['width'] = nwidth
-        crop_options['height'] = nheight
+        factor = nwidth / 100.0
+
+        crop_options['width'] = 100 if settings.fast else nwidth
+        crop_options['height'] = (int(nheight / factor) if settings.fast else
+            nheight)
         logging.info("[%s] SmartCrop.py new dimensions: %ix%i" % (self.name, 
             nwidth, nheight))
 

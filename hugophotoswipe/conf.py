@@ -44,10 +44,10 @@ DEFAULTS = {
         'smartcrop_js_path': None,
         'jpeg_progressive': False,
         'jpeg_optimize': False,
-        'jpeg_quality': 75,
-        'verbose': False
+        'jpeg_quality': 75
         }
 
+DONT_DUMP = ['verbose', 'fast']
 
 class Settings(object):
     def __init__(self, **entries):
@@ -77,6 +77,8 @@ class Settings(object):
         with open(pth, 'w') as fid:
             fid.write('---\n')
             for key in sorted(self.__dict__.keys()):
+                if key in DONT_DUMP:
+                    continue
                 yaml_field_to_file(fid, getattr(self, key), key)
 
     def validate(self):
