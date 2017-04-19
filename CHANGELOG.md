@@ -1,5 +1,11 @@
 # Change Log
 
+## Version 0.0.14
+
+- Added optional fast mode, with which SmartCrop.py consider less potential 
+  crops (closes issue #10)
+- Ensure operational flags (verbose, fast) aren't stored in settings file.
+
 ## Version 0.0.13
 
 - Added verbose mode
