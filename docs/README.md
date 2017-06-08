@@ -12,12 +12,10 @@ The following options are available in the ``hugophotoswipe.yml`` file:
 | dirname_large | 'large' | Name of directory for large images |
 | dirname_small | 'small' | Name of directory for smaller images |
 | dirname_thumb | 'thumb' | Name of directory for thumbnails |
-| dim_max_large | 1600 | Maximum large image size |
-| dim_max_small | 800 | Maximum small image size |
-| dim_max_thumb | 256 | Maximum thumbnail dimensions |
-| dim_max_cover | 600 | Maximum cover image dimensions |
-| square_thumbnails | True | Thumbnails should be square |
-| square_coverimage | True | Cover images should be square |
+| dim_max_large | '1600' | Maximum large image size (see below) |
+| dim_max_small | '800' | Maximum small image size (see below) |
+| dim_max_thumb | '256x256' | Maximum thumbnail dimensions (see below) |
+| dim_max_cover | '600x600' | Maximum cover image dimensions (see below) |
 | cover_filename | 'coverimage.jpg' | Name of coverimage file |
 | photo_dir | 'photos' | Name of directory in album where photos are stored |
 | album_file | 'album.yml' | Name of YAML file with photo descriptions |
@@ -29,6 +27,20 @@ The following options are available in the ``hugophotoswipe.yml`` file:
 
 Naturally, the jpeg options are only applied when ``output_format`` is 
 ``jpg``.
+
+Maximum image size
+------------------
+
+For each of the four possible output modes, the maximum image dimension can be 
+set with the respective ``dim_max_`` setting. This setting can either be an 
+exact dimension (``'widthxheight'``, e.g. ``'300x400'``), a partial dimension 
+(``'300x'`` or ``'x400'``) or a single number (``300`` or ``'300'``). When an 
+exact dimension is given, the photo will be resized to those dimensions (with 
+no regard for the aspect ratio).  When a partial dimension is given, the other 
+dimension will be scaled such that the aspect ratio of the photo remains 
+unchanged. When a single number is given, the *maximum* dimension of the photo 
+will be reduced to the given number, and the other dimension is chosen 
+according to the aspect ratio.
 
 Shortcodes
 ==========

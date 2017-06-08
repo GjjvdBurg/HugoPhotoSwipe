@@ -1,5 +1,15 @@
 # Change Log
 
+## Version 0.0.15
+
+- Changed ``dim_max_`` settings to using a string input field which can take 
+  different size specifications. This allows for setting constant width, 
+  constant height, or specific size of photos. Updated the documentation to 
+  reflect this change.
+- Removed the now obsolete ``square_thumbnails`` and ``square_coverimage`` 
+  settings
+- Added unit test for the ``resize_dims`` method of the ``Photo`` class.
+
 ## Version 0.0.14
 
 - Added optional fast mode, with which SmartCrop.py consider less potential 

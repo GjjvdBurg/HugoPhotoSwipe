@@ -31,12 +31,10 @@ DEFAULTS = {
         'dirname_large': 'large',
         'dirname_small': 'small',
         'dirname_thumb': 'thumb',
-        'dim_max_large': 1600,
-        'dim_max_small': 800,
-        'dim_max_thumb': 256,
-        'dim_max_cover': 600,
-        'square_thumbnails': True,
-        'square_coverimage': True,
+        'dim_max_large': '1600',
+        'dim_max_small': '800',
+        'dim_max_thumb': '256x256',
+        'dim_max_cover': '600x600',
         'cover_filename': 'coverimage.jpg',
         'photo_dir': 'photos',
         'album_file': 'album.yml',
@@ -67,6 +65,26 @@ class Settings(object):
                     DeprecationWarning)
             entries['dim_max_cover'] = entries['dim_coverimage']
             del entries['dim_coverimage']
+
+        # remove deprecated square options
+        square_options = ['square_thumbnails', 'square_coverimage']
+        square_dim_opts = {'square_thumbnails': 'dim_max_thumb',
+                'square_coverimage': 'dim_max_cover'}
+        for opt in square_options:
+            if opt in entries:
+                warnings.warn("The '%s' option has been removed "
+                    "because of the new size syntax of version 0.0.15. Your "
+                    "hugophotoswipe.yml file will be updated." % opt,
+                    DeprecationWarning)
+                if entries[opt]:
+                    dim = entries[square_dim_opts[opt]]
+                    entries[square_dim_opts[opt]] = '%ix%i' % (dim, dim)
+                del entries[opt]
+
+        # ensure dim_max is always string
+        for key in entries:
+            if key.startswith('dim_max_'):
+                entries[key] = str(entries[key]).strip()
 
         self.__dict__.update(entries)
 

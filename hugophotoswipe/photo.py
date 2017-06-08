@@ -7,7 +7,7 @@ License: GPL v3.
 
 """
 
-from __future__ import print_function
+from __future__ import print_function, division
 
 import hashlib
 import logging
@@ -234,33 +234,45 @@ class Photo(object):
     def resize_dims(self, mode):
         """ Calculate the width and height of the resized image """
 
+        # get the setting
         if mode == 'large':
             desired_max_dim = settings.dim_max_large
         elif mode == 'small':
             desired_max_dim = settings.dim_max_small
         elif mode == 'thumb':
-            if settings.square_thumbnails:
-                return (settings.dim_max_thumb, settings.dim_max_thumb)
-            else:
-                desired_max_dim = settings.dim_max_thumb
+            desired_max_dim = settings.dim_max_thumb
         elif mode == 'cover':
-            if settings.square_coverimage:
-                return (settings.dim_max_cover, settings.dim_max_cover)
-            else:
-                desired_max_dim = settings.dim_max_cover
+            desired_max_dim = settings.dim_max_cover
         else:
             raise ValueError("Unkown mode provided")
 
-        # find out the desired dimension
-        maxdim = max(self.width, self.height)
-        ratio = float(desired_max_dim)/float(maxdim)
-        # never scale up
+        des_width, des_height = None, None
+        if 'x' in desired_max_dim:
+            des_width, des_height = desired_max_dim.split('x')
+
+        if des_width and des_height:
+            nwidth = int(des_width)
+            nheight= int(des_height)
+            ratio = 0.0
+        elif des_width:
+            ratio = int(des_width) / self.width
+            nwidth = int(des_width)
+            nheight = round(ratio * self.height)
+        elif des_height:
+            ratio = int(des_height) / self.height
+            nwidth = round(ratio * self.width)
+            nheight = int(des_height)
+        else:
+            maxdim = max(self.width, self.height)
+            ratio = int(desired_max_dim) / maxdim
+            nwidth = round(ratio * self.width)
+            nheight = round(ratio * self.height)
+
         if ratio > 1.0:
-            logging.warning("[%s] Not scaling up." % self.name)
-        ratio = min(ratio, 1.0)
-        # calculate new widths
-        nwidth = int(ratio * self.width)
-        nheight = int(ratio * self.height)
+            logging.warning("[%s] Scaling up image from (%i, %i) to (%i, %i). "
+                    "Scaling up may not be desirable." % (self.name, 
+                        self.width, self.height, nwidth, nheight))
+
         return nwidth, nheight
 
 
