@@ -257,16 +257,16 @@ class Photo(object):
         elif des_width:
             ratio = int(des_width) / self.width
             nwidth = int(des_width)
-            nheight = round(ratio * self.height)
+            nheight = int(round(ratio * self.height))
         elif des_height:
             ratio = int(des_height) / self.height
-            nwidth = round(ratio * self.width)
+            nwidth = int(round(ratio * self.width))
             nheight = int(des_height)
         else:
             maxdim = max(self.width, self.height)
             ratio = int(desired_max_dim) / maxdim
-            nwidth = round(ratio * self.width)
-            nheight = round(ratio * self.height)
+            nwidth = int(round(ratio * self.width))
+            nheight = int(round(ratio * self.height))
 
         if ratio > 1.0:
             logging.warning("[%s] Scaling up image from (%i, %i) to (%i, %i). "

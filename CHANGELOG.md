@@ -1,5 +1,10 @@
 # Change Log
 
+## Version 0.0.16
+
+- Hotfix for ``resize_dims`` for Python 2, where round returns float instead 
+  of int.
+
 ## Version 0.0.15
 
 - Changed ``dim_max_`` settings to using a string input field which can take 
