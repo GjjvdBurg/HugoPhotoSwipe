@@ -32,23 +32,30 @@ class PhotoTestCase(unittest.TestCase):
                 ('dim_max_cover', 'cover')
                 ]
         for setting_name, mode in pairs:
-            setattr(settings, setting_name, '1600')
-            #settings.dim_max_large = '1600'
-            dims = self.photo.resize_dims(mode)
             # 1040 = 1600 / 1800 * 1170
+            setattr(settings, setting_name, '1600')
+            dims = self.photo.resize_dims(mode)
             self.assertEqual(dims, (1600, 1040))
+            self.assertIsInstance(dims[0], int)
+            self.assertIsInstance(dims[1], int)
 
+            # 1500 / 1800 * 1170 = 975
             setattr(settings, setting_name, '1500x')
             dims = self.photo.resize_dims(mode)
-            # 1500 / 1800 * 1170 = 975
             self.assertEqual(dims, (1500, 975))
+            self.assertIsInstance(dims[0], int)
+            self.assertIsInstance(dims[1], int)
 
+            # 1000 / 1170 * 1800 = 1538
             setattr(settings, setting_name, 'x1000')
             dims = self.photo.resize_dims(mode)
-            # 1000 / 1170 * 1800 = 1538
             self.assertEqual(dims, (1538, 1000))
+            self.assertIsInstance(dims[0], int)
+            self.assertIsInstance(dims[1], int)
 
+            # exact dimensions
             setattr(settings, setting_name, '800x600')
             dims = self.photo.resize_dims(mode)
             self.assertEqual(dims, (800, 600))
-
+            self.assertIsInstance(dims[0], int)
+            self.assertIsInstance(dims[1], int)
