@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
-"""
+"""Class to handle operations on individual images
+
+The Photo class contains the methods to rescale individual images and to 
+generate the shortcode for the image for the Markdown file.
+
 
 Author: Gertjan van den Burg
 License: GPL v3.
@@ -98,6 +102,7 @@ class Photo(object):
 
 
     def has_sizes(self):
+        """ Check if all necessary sizes exist on disk """
         if self.name is None:
             return False
         if not os.path.exists(self.large_path):
@@ -113,6 +118,7 @@ class Photo(object):
 
 
     def create_sizes(self):
+        """ Create all necessary sizes """
         if self.name is None:
             print("Skipping file: %s. No name defined." % self.filename)
             return
@@ -129,6 +135,7 @@ class Photo(object):
 
 
     def create_rescaled(self, mode):
+        """ Do the actual resizing of images for modes without smartcrop """
         # get the desired dimensions
         nwidth, nheight = self.resize_dims(mode)
         logging.info("[%s] Creating %s image of dimensions: %ix%i" % 
@@ -149,6 +156,7 @@ class Photo(object):
 
 
     def create_thumb(self, mode=None, pth=None):
+        """ Create the image thumbnail """
         if settings.use_smartcrop_js:
             self.create_thumb_js(mode=mode, pth=pth)
         else:
@@ -278,12 +286,14 @@ class Photo(object):
 
     @property
     def clean_name(self):
+        """ The name of the image without extension and spaces """
         f, ext = os.path.splitext(self.name.lower().replace(' ', '_'))
         return f
 
 
     @cached_property
     def large_path(self):
+        """ The path of the large resized image """
         thedir = os.path.join(settings.output_dir, self.album_name, 
                 settings.dirname_large)
         mkdirs(thedir)
@@ -295,6 +305,7 @@ class Photo(object):
 
     @cached_property
     def small_path(self):
+        """ The path of the small resized image """
         thedir = os.path.join(settings.output_dir, self.album_name, 
                 settings.dirname_small)
         mkdirs(thedir)
@@ -306,6 +317,7 @@ class Photo(object):
 
     @cached_property
     def thumb_path(self):
+        """ The path of the thumbnail image """
         thedir = os.path.join(settings.output_dir, self.album_name, 
                 settings.dirname_thumb)
         mkdirs(thedir)
@@ -317,6 +329,7 @@ class Photo(object):
 
     @property
     def clean_caption(self):
+        """ Return the caption of the photo for the yaml file """
         if self.caption:
             cap = self.caption.strip()
             cap = '>\n' + indent('\n'.join(wrap(cap)), ' '*10)
@@ -326,16 +339,19 @@ class Photo(object):
 
     @property
     def filename(self):
+        """ The basename of the original path """
         return os.path.basename(self.original_path)
 
 
     @property
     def extension(self):
+        """ The extension of the file """
         return os.path.splitext(self.original_path)[-1]
 
 
     @property
     def shortcode(self):
+        """ Generate the shortcode for the Markdown file """
         prefix = '' if settings.url_prefix is None else settings.url_prefix
         L = len(settings.output_dir)
         large_path = (prefix + self.large_path[L:]).replace('\\','/')
@@ -362,11 +378,13 @@ class Photo(object):
 
     @property
     def width(self):
+        """ The width of the original image """
         return self.original_image.width
 
 
     @property
     def height(self):
+        """ The height of the original image """
         return self.original_image.height
 
 

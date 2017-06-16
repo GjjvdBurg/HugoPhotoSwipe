@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 
-"""
+"""Handle settings for HugoPhotoSwipe
+
+HugoPhotoSwipe uses a settings file for the configuration set by the user. This 
+configuration is loaded/initialized here as a ``settings`` object and is used 
+throughout the program. 
+
+Flags to the ``hps`` executable are saved as settings as well, but are not 
+dumped to the yaml file because they are runtime options.
 
 Author: Gertjan van den Burg
 License: GPL v3.

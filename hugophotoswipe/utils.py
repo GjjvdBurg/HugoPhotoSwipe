@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-"""
+"""Several utility functions
+
+This file contains several utility functions used throughout HugoPhotoSwipe.
 
 Author: Gertjan van den Burg
 License: GPL v3.
@@ -25,6 +27,7 @@ else:
 
 
 def mkdirs(path):
+    """ Create directories recursively and don't complain when they exist """
     try:
         os.makedirs(path)
     except OSError as exc:
@@ -35,7 +38,7 @@ def mkdirs(path):
 
 
 def modtime():
-    # Get current time as string
+    """ Get the current local time as a string in iso format """
     if six.PY2:
         local_tz = get_localzone()
         now = datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(local_tz)
@@ -46,6 +49,7 @@ def modtime():
 
 
 def yaml_field_to_file(fid, data, field, indent='', force_string=False):
+    """ Handy function for writing pretty yaml """
     if data is None:
         fid.write('%s%s:\n' % (indent, field))
     else:
@@ -56,10 +60,11 @@ def yaml_field_to_file(fid, data, field, indent='', force_string=False):
 
 
 def question_yes_no(question, default=True):
+    """ Ask a yes/no question from the user and be persistent """
     if default:
-        extension = "[Y/n]"
+        extension = "[Y/n/q]"
     else:
-        extension = "[y/N]"
+        extension = "[y/N/q]"
     while True:
         user_input = input('%s %s ' % (question, extension))
         if user_input == 'q':
@@ -75,7 +80,7 @@ def question_yes_no(question, default=True):
 
 
 class cached_property(object):
-    """
+    """Decorator for cached class properties
 
     Decorator that converts a method with a single self argument into a 
     property cached on the instance.

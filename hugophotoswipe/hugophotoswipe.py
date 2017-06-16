@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
-"""
+"""The main HugoPhotoSwipe class
+
+This file contains the HugoPhotoSwipe class which is handles the command line 
+user interface commands through several methods. It handles creation of new 
+albums, updating albums, and cleaning albums.
 
 Author: Gertjan van den Burg
 License: GPL v3.
@@ -87,6 +91,7 @@ class HugoPhotoSwipe(object):
     ####################
 
     def _load_albums(self):
+        """ Load all albums from the current directory """
         local_objects = os.listdir('.')
         local_dirs = [o for o in local_objects if os.path.isdir(o)]
         album_dirs = [d.lstrip('./') for d in local_dirs]

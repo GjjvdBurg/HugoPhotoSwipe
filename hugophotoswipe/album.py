@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-"""
+"""Class for albums of photos
+
+The Album class has all the methods needed for updating albums, creating the 
+album markdown, etc.
 
 Author: Gertjan van den Burg
 License: GPL v3.
@@ -145,6 +148,7 @@ class Album(object):
 
 
     def dump(self):
+        """ Save the album configuration to a YAML file """
         if self._album_file is None:
             raise ValueError("Album file is not defined.")
 
@@ -190,6 +194,7 @@ class Album(object):
 
     @classmethod
     def load(cls, album_dir):
+        """ Load an Album class from an album directory """
         album_file = os.path.join(album_dir, settings.album_file)
         data = {'album_dir': album_dir}
         if os.path.exists(album_file):

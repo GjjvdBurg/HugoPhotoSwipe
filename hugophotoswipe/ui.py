@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
-"""
+"""Contains the functions for handling the user interface
+
+This file contains the functions for handling the command line user interface.  
+It mainly processses the command line arguments, loads the settings, 
+initializes a HugoPhotoSwipe instance, and passes the command to this instance.
 
 Author: Gertjan van den Burg
 License: GPL v3.
@@ -16,6 +20,7 @@ from .hugophotoswipe import HugoPhotoSwipe
 from .conf import settings, SETTINGS_FILENAME
 
 def main():
+    """ Main HugoPhotoSwipe function to be called to run the program """
     command, album = parse_args()
 
     if command == 'init':
