@@ -1,5 +1,14 @@
 # Change Log
 
+## Version 0.1.0
+
+- Update versioning scheme to major/minor/hotfix. In the future the last field 
+  will only be used for hotfixes, the minor field for small changes and 
+  features, and the major field for backward-incompatible changes.
+- Extend unit tests for ``Photo.resize_dims()`` to catch the bug fixed by 
+  version 0.0.16.
+- Added some documentation to the classes and methods
+
 ## Version 0.0.16
 
 - Hotfix for ``resize_dims`` for Python 2, where round returns float instead 
