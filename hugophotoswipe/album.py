@@ -114,11 +114,12 @@ class Album(object):
     def create_markdown(self):
         """ Create the markdown file, always overwrite existing """
         # Create the header for Hugo
+        coverpath = ''
         if not self.coverimage is None:
             coverpath = (settings.url_prefix +
                     self.cover_path[len(settings.output_dir):])
-        else:
-            coverpath = ''
+            # path should always be unix style for Hugo frontmatter
+            coverpath = coverpath.replace('\\', '/')
 
         if self.properties is None:
             proptxt = ['']

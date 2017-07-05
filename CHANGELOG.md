@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.1.1
+
+- Fix issue #17, bug in cover image path on Windows
+
 ## Version 0.1.0
 
 - Update versioning scheme to major/minor/hotfix. In the future the last field 
