@@ -23,6 +23,7 @@ if six.PY2:
     import pytz
     input = raw_input
 else:
+    basetring = str
     from datetime import timezone
 
 
@@ -47,7 +48,6 @@ def modtime():
     nowstr = now.replace(microsecond=0).isoformat()
     return nowstr
 
-
 def yaml_field_to_file(fid, data, field, indent='', force_string=False):
     """ Handy function for writing pretty yaml """
     if data is None:
@@ -56,7 +56,15 @@ def yaml_field_to_file(fid, data, field, indent='', force_string=False):
         if force_string:
             fid.write('%s%s: \"%s\"\n' % (indent, field, data))
         else:
-            fid.write('%s%s: %s\n' % (indent, field, data))
+            if isinstance(data, basestring):
+                if '\n' in data:
+                    fid.write('%s%s: |\n' % (indent, field))
+                    for line in data.split('\n'):
+                        fid.write('%s  %s\n' % (indent, line))
+                else:
+                    fid.write('%s%s: %s\n' % (indent, field, data))
+            else:
+                fid.write('%s%s: %s\n' % (indent, field, data))
 
 
 def question_yes_no(question, default=True):
