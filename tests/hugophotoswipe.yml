@@ -1,0 +1,20 @@
+---
+album_file: album.yml
+cover_filename: coverimage.jpg
+dim_max_cover: 600x600
+dim_max_large: 1280
+dim_max_small: 800
+dim_max_thumb: 256x256
+dirname_large: large
+dirname_small: small
+dirname_thumb: thumb
+jpeg_optimize: False
+jpeg_progressive: False
+jpeg_quality: 75
+markdown_dir: .
+output_dir: .
+output_format: jpg
+photo_dir: photos
+smartcrop_js_path:
+url_prefix: /photos
+use_smartcrop_js: False
