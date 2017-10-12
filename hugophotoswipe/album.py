@@ -124,13 +124,8 @@ class Album(object):
         if self.properties is None:
             proptxt = ['']
         else:
-            proptxt = ["%s = [%s]" % (k,
-                                      ", ".join("\"\"\"%s\"\"\"" % s
-                                                for s in v)
-                                      )
-                       if type(v) == list
-                       else "%s = \"\"\"%s\"\"\"" % (k, v)
-                       for k, v in self.properties.items()]
+            proptxt = ["%s = \"\"\"%s\"\"\"" % (k, v) for k, v in 
+                    self.properties.items()]
 
         txt = [
                 "+++",
