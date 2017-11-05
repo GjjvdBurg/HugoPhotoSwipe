@@ -175,8 +175,7 @@ class Album(object):
 
             fid.write('\n')
             fid.write('photos:')
-            sorted_photos = sorted(self.photos)
-            for photo in sorted_photos:
+            for photo in self.photos:
                 fid.write('\n')
                 yaml_field_to_file(fid, photo.filename, 'file', indent='- ')
                 yaml_field_to_file(fid, photo.name, 'name', indent='  ')
@@ -186,7 +185,7 @@ class Album(object):
 
             fid.write('\n')
             fid.write('hashes:')
-            for photo in sorted_photos:
+            for photo in self.photos:
                 fid.write('\n')
                 yaml_field_to_file(fid, photo.filename, 'file', indent='- ')
                 yaml_field_to_file(fid, hash(photo), 'hash', indent='  ')

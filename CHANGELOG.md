@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.2.0
+
+- Don't sort photos when writing to YAML (fixes #22).
+
 ## Version 0.1.1
 
 - Fix issue #17, bug in cover image path on Windows
