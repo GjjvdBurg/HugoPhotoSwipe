@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.2.1
+
+- Fix for "input" on Python 2.
+
 ## Version 0.2.0
 
 - Don't sort photos when writing to YAML (fixes #22).

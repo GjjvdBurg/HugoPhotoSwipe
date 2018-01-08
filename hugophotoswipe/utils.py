@@ -21,7 +21,6 @@ from datetime import datetime
 if six.PY2:
     from tzlocal import get_localzone
     import pytz
-    input = raw_input
 else:
     from datetime import timezone
 
@@ -66,7 +65,7 @@ def question_yes_no(question, default=True):
     else:
         extension = "[y/N/q]"
     while True:
-        user_input = input('%s %s ' % (question, extension))
+        user_input = six.moves.input('%s %s ' % (question, extension))
         if user_input == 'q':
             raise SystemExit
         if user_input.lower() in ['y', 'yes']:

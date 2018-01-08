@@ -15,6 +15,7 @@ from __future__ import print_function
 
 import logging
 import os
+import six
 
 from .album import Album
 from .conf import settings
@@ -37,7 +38,7 @@ class HugoPhotoSwipe(object):
     def new(self, name=None):
         """ Create new album """
         if name is None:
-            name = input("Please provide a name for the new album: ")
+            name = six.moves.input("Please provide a name for the new album: ")
         album_dir = name.strip().rstrip('/').replace(' ', '_')
         if os.path.exists(album_dir):
             print("Can't create album with this name, it exists already.")
