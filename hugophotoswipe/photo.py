@@ -284,6 +284,19 @@ class Photo(object):
         return nwidth, nheight
 
 
+    def url_path_for_size(self, size):
+        if not size in ['large', 'small', 'thumb']:
+            raise ValueError("Size '%s' not known." % size)
+        prefix = '' if settings.url_prefix is None else settings.url_prefix
+        L = len(settings.output_dir)
+        if size == 'large':
+            return (prefix + self.large_path[L:]).replace('\\', '/')
+        elif size == 'small':
+            return (prefix + self.small_path[L:]).replace('\\','/')
+        else:
+            return (prefix + self.thumb_path[L:]).replace('\\','/')
+
+
     @property
     def clean_name(self):
         """ The name of the image without extension and spaces """
@@ -352,11 +365,9 @@ class Photo(object):
     @property
     def shortcode(self):
         """ Generate the shortcode for the Markdown file """
-        prefix = '' if settings.url_prefix is None else settings.url_prefix
-        L = len(settings.output_dir)
-        large_path = (prefix + self.large_path[L:]).replace('\\','/')
-        small_path = (prefix + self.small_path[L:]).replace('\\','/')
-        thumb_path = (prefix + self.thumb_path[L:]).replace('\\','/')
+        large_path = self.url_path_for_size('large')
+        small_path = self.url_path_for_size('small')
+        thumb_path = self.url_path_for_size('thumb')
         large_dim = '%ix%i' % self.resize_dims('large')
         small_dim = '%ix%i' % self.resize_dims('small')
         thumb_dim = '%ix%i' % self.resize_dims('thumb')

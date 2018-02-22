@@ -16,12 +16,14 @@ import logging
 import os
 import shutil
 import yaml
+import json
 
 from tqdm import tqdm
 
 from .conf import settings
 from .photo import Photo
-from .utils import yaml_field_to_file, modtime, question_yes_no, mkdirs
+from .utils import (clean_str, yaml_field_to_file, modtime, question_yes_no, 
+        mkdirs)
 
 
 class Album(object):
@@ -69,6 +71,13 @@ class Album(object):
         return os.path.join(md_dir, self.name + '.md')
 
     @property
+    def data_file(self):
+        """ Path to the data file """
+        data_dir = os.path.realpath(settings.data_dir)
+        mkdirs(data_dir)
+        return os.path.join(data_dir, self.name + '.json')
+
+    @property
     def output_dir(self):
         """ Base dir for the processed images """
         pth = os.path.realpath(settings.output_dir)
@@ -88,15 +97,19 @@ class Album(object):
         """
         output_dir = os.path.join(settings.output_dir, self.name)
         have_md = os.path.exists(self.markdown_file)
+        have_data = os.path.exists(self.data_file)
         have_out = os.path.exists(output_dir)
         q = "Going to remove: "
         if have_md:
             q += self.markdown_file
+        if have_data:
+            q += ", " if have_md else ""
+            q += self.data_file
         if have_out:
-            q += " and " if have_md else ""
+            q += " and " if (have_md or have_data) else ""
             q += self.output_dir
         q += ". Is this okay?"
-        if (not have_md) and (not have_out):
+        if (not have_md) and (not have_data) and (not have_out):
             return
         if not question_yes_no(q):
             return
@@ -105,6 +118,10 @@ class Album(object):
             logging.info("[%s] Removing markdown file: %s" % (self.name, 
                 self.markdown_file))
             os.unlink(self.markdown_file)
+        if have_data:
+            logging.info("[%s] Removing data file: %s" % (self.name, 
+                self.data_file))
+            os.unlink(self.data_file)
         if have_out:
             logging.info("[%s] Removing images directory: %s" % (self.name, 
                 output_dir))
@@ -146,6 +163,40 @@ class Album(object):
         with open(self.markdown_file, 'w') as fid:
             fid.write('\n'.join(txt))
         print("Written markdown file: %s" % self.markdown_file)
+
+
+    def create_datafile(self):
+        """ Create a data file for the album """
+        items = []
+        for photo in self.photos:
+            item = {
+                    "type": "img",
+                    "caption": clean_str(photo.caption),
+                    "copyright": clean_str(photo.copyright),
+                    "alt": clean_str(photo.alt)
+                    }
+            for size in ['large', 'small', 'thumb']:
+                w, h = photo.resize_dims(size)
+                item[size] = {
+                        'path': photo.url_path_for_size(size),
+                        'width': w,
+                        'height': h
+                        }
+            items.append(item)
+        coverpath = '' if self.coverimage is None else (
+                settings.url_prefix +
+                self.cover_path[len(settings.output_dir):]).replace('\\', '/')
+        data = {
+                "galleryName": self.name,
+                "galleryTitle": self.title,
+                "galleryDate": clean_str(self.album_date),
+                "galleryCover": coverpath,
+                "galleryProperties": self.properties,
+                "galleryItems": items
+                }
+        with open(self.data_file, 'w') as fid:
+            json.dump(data, fid, indent=2)
+        print("Written data file: %s" % self.data_file)
 
 
     def dump(self):
@@ -283,6 +334,11 @@ class Album(object):
         # Overwrite the markdown file
         logging.info("[%s] Writing markdown file." % self.name)
         self.create_markdown()
+
+        # Overwrite data file if enabled
+        if settings.generate_data_files:
+            logging.info("[%s] Writing data file." % self.name)
+            self.create_datafile()
 
         # Overwrite the yaml file of the album
         logging.info("[%s] Saving album yaml." % self.name)

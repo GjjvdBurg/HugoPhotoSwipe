@@ -34,6 +34,8 @@ DEFAULTS = {
         'markdown_dir': None,
         'output_dir': None,
         'url_prefix': None,
+        'data_dir': None,
+        'generate_data_files': False,
         'output_format': 'jpg',
         'dirname_large': 'large',
         'dirname_small': 'small',

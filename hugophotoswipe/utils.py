@@ -98,3 +98,7 @@ class cached_property(object):
             return self
         res = instance.__dict__[self.name] = self.func(instance)
         return res
+
+def clean_str(string):
+    """ Clean string """
+    return '' if string is None else string.strip()
