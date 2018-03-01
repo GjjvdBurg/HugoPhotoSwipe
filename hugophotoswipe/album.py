@@ -203,6 +203,10 @@ class Album(object):
         else:
             print("Skipping non-album directory: %s" % album_dir)
             return None
+
+        """ Sort photos by filename """
+        data['photos'] = sorted(data['photos'], key=lambda x: x['file'])
+        
         album = cls(**data)
         album.cover_path = os.path.join(settings.output_dir, album.name, 
                 settings.cover_filename)
