@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.2.2
+
+- Sort new photos in an album alphabetically (fixes #26)
+
 ## Version 0.2.1
 
 - Fix for "input" on Python 2.

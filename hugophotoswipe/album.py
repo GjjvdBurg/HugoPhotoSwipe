@@ -235,12 +235,13 @@ class Album(object):
         # self.photos
         photo_files = [p.filename for p in self.photos]
         photo_dir = os.path.join(self._album_dir, settings.photo_dir)
-        for f in os.listdir(photo_dir):
-            if not f in photo_files:
-                pho = Photo(album_name=self.name, 
-                        original_path=os.path.join(photo_dir, f), name=f,
-                        copyright=self.copyright)
-                self.photos.append(pho)
+        missing = [f for f in os.listdir(photo_dir) if not f in photo_files]
+        missing.sort()
+        for f in missing:
+            pho = Photo(album_name=self.name, 
+                    original_path=os.path.join(photo_dir, f), name=f,
+                    copyright=self.copyright)
+            self.photos.append(pho)
         logging.info("[%s] Found %i photos from yaml and photos dir" % 
                 (self.name, len(self.photos)))
 
