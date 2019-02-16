@@ -183,16 +183,13 @@ class Photo(object):
 
         # Load smartcrop and set options
         sc = smartcrop.SmartCrop()
-        crop_options = smartcrop.DEFAULTS
 
         # Get desired dimensions
         nwidth, nheight = self.resize_dims(mode)
         factor = nwidth / 100.0
 
-        crop_options["width"] = 100 if settings.fast else nwidth
-        crop_options["height"] = (
-            int(nheight / factor) if settings.fast else nheight
-        )
+        crop_width = 100 if settings.fast else nwidth
+        crop_height = int(nheight / factor) if settings.fast else nheight
         logging.info(
             "[%s] SmartCrop.py new dimensions: %ix%i"
             % (self.name, nwidth, nheight)
@@ -209,12 +206,12 @@ class Photo(object):
         logging.info(
             "[%s] SmartCrop.py computing optimal crop size." % self.name
         )
-        ret = sc.crop(img, crop_options)
+        ret = sc.crop(img, crop_width, crop_height)
         box = (
-            ret["topCrop"]["x"],
-            ret["topCrop"]["y"],
-            ret["topCrop"]["width"] + ret["topCrop"]["x"],
-            ret["topCrop"]["height"] + ret["topCrop"]["y"],
+            ret["top_crop"]["x"],
+            ret["top_crop"]["y"],
+            ret["top_crop"]["width"] + ret["top_crop"]["x"],
+            ret["top_crop"]["height"] + ret["top_crop"]["y"],
         )
 
         # Do the actual crop

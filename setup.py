@@ -40,9 +40,6 @@ setup(
             'pytz',
             'pyyaml',
             'tqdm',
-            'smartcrop>=0.1',
+            'smartcrop',
             ],
-        dependency_links = [
-            'https://github.com/hhatto/smartcrop.py/tarball/master#egg=smartcrop-0.1'
-            ]
         )

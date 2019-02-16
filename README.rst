@@ -33,7 +33,7 @@ Installation
 
 HugoPhotoSwipe is available on PyPI, you can install it easily with pip::
 
-    pip install --process-dependency-links hugophotoswipe
+    pip install hugophotoswipe
 
 After installation, you should be left with a ``hps`` program.
 
