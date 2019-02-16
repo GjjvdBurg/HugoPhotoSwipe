@@ -25,10 +25,19 @@ from .utils import yaml_field_to_file, modtime, question_yes_no, mkdirs
 
 
 class Album(object):
-
-    def __init__(self, album_dir=None, title=None, album_date=None,
-            properties=None, copyright=None, coverimage=None, creation_time=None,
-            modification_time=None, photos=None, hashes=None):
+    def __init__(
+        self,
+        album_dir=None,
+        title=None,
+        album_date=None,
+        properties=None,
+        copyright=None,
+        coverimage=None,
+        creation_time=None,
+        modification_time=None,
+        photos=None,
+        hashes=None,
+    ):
 
         self._album_dir = album_dir
         self._album_file = None
@@ -66,14 +75,13 @@ class Album(object):
         """ Path of the markdown file """
         md_dir = os.path.realpath(settings.markdown_dir)
         mkdirs(md_dir)
-        return os.path.join(md_dir, self.name + '.md')
+        return os.path.join(md_dir, self.name + ".md")
 
     @property
     def output_dir(self):
         """ Base dir for the processed images """
         pth = os.path.realpath(settings.output_dir)
         return os.path.join(pth, self.name)
-
 
     ################
     #              #
@@ -102,51 +110,55 @@ class Album(object):
             return
 
         if have_md:
-            logging.info("[%s] Removing markdown file: %s" % (self.name, 
-                self.markdown_file))
+            logging.info(
+                "[%s] Removing markdown file: %s"
+                % (self.name, self.markdown_file)
+            )
             os.unlink(self.markdown_file)
         if have_out:
-            logging.info("[%s] Removing images directory: %s" % (self.name, 
-                output_dir))
+            logging.info(
+                "[%s] Removing images directory: %s" % (self.name, output_dir)
+            )
             shutil.rmtree(output_dir)
-
 
     def create_markdown(self):
         """ Create the markdown file, always overwrite existing """
         # Create the header for Hugo
-        coverpath = ''
+        coverpath = ""
         if not self.coverimage is None:
-            coverpath = (settings.url_prefix +
-                    self.cover_path[len(settings.output_dir):])
+            coverpath = (
+                settings.url_prefix
+                + self.cover_path[len(settings.output_dir) :]
+            )
             # path should always be unix style for Hugo frontmatter
-            coverpath = coverpath.replace('\\', '/')
+            coverpath = coverpath.replace("\\", "/")
 
         if self.properties is None:
-            proptxt = ['']
+            proptxt = [""]
         else:
-            proptxt = ["%s = \"\"\"%s\"\"\"" % (k, v) for k, v in 
-                    self.properties.items()]
+            proptxt = [
+                '%s = """%s"""' % (k, v) for k, v in self.properties.items()
+            ]
 
         txt = [
-                "+++",
-                "title = \"%s\"" % self.title,
-                "date = \"%s\"" % ('' if self.album_date is None else 
-                    self.album_date),
-                "%s" % ('\n'.join(proptxt)),
-                "cover = \"%s\"" % coverpath,
-                "+++",
-                "",
-                "{{< wrap >}}", # needed to avoid <p> tags from hugo
-                ]
+            "+++",
+            'title = "%s"' % self.title,
+            'date = "%s"'
+            % ("" if self.album_date is None else self.album_date),
+            "%s" % ("\n".join(proptxt)),
+            'cover = "%s"' % coverpath,
+            "+++",
+            "",
+            "{{< wrap >}}",  # needed to avoid <p> tags from hugo
+        ]
         for photo in self.photos:
             txt.append(photo.shortcode)
             txt.append("")
 
         txt.append("{{< /wrap >}}")
-        with open(self.markdown_file, 'w') as fid:
-            fid.write('\n'.join(txt))
+        with open(self.markdown_file, "w") as fid:
+            fid.write("\n".join(txt))
         print("Written markdown file: %s" % self.markdown_file)
-
 
     def dump(self):
         """ Save the album configuration to a YAML file """
@@ -157,63 +169,72 @@ class Album(object):
         self._backup()
 
         # now overwrite the existing file
-        with open(self._album_file, 'w') as fid:
-            fid.write('---\n')
-            yaml_field_to_file(fid, self.title, 'title')
-            yaml_field_to_file(fid, self.album_date, 'album_date',
-                    force_string=True)
-            yaml_field_to_file(fid, None, 'properties')
+        with open(self._album_file, "w") as fid:
+            fid.write("---\n")
+            yaml_field_to_file(fid, self.title, "title")
+            yaml_field_to_file(
+                fid, self.album_date, "album_date", force_string=True
+            )
+            yaml_field_to_file(fid, None, "properties")
             if self.properties:
                 for name, field in sorted(self.properties.items()):
-                    yaml_field_to_file(fid, field, name, indent='  ')
-            yaml_field_to_file(fid, self.copyright, 'copyright')
-            yaml_field_to_file(fid, self.coverimage, 'coverimage')
-            yaml_field_to_file(fid, self.creation_time, 'creation_time',
-                    force_string=True)
-            yaml_field_to_file(fid, modtime(), 'modification_time',
-                    force_string=True)
+                    yaml_field_to_file(fid, field, name, indent="  ")
+            yaml_field_to_file(fid, self.copyright, "copyright")
+            yaml_field_to_file(fid, self.coverimage, "coverimage")
+            yaml_field_to_file(
+                fid, self.creation_time, "creation_time", force_string=True
+            )
+            yaml_field_to_file(
+                fid, modtime(), "modification_time", force_string=True
+            )
 
-            fid.write('\n')
-            fid.write('photos:')
+            fid.write("\n")
+            fid.write("photos:")
             for photo in self.photos:
-                fid.write('\n')
-                yaml_field_to_file(fid, photo.filename, 'file', indent='- ')
-                yaml_field_to_file(fid, photo.name, 'name', indent='  ')
-                yaml_field_to_file(fid, photo.alt, 'alt', indent='  ')
-                yaml_field_to_file(fid, photo.clean_caption, 'caption',
-                        indent='  ')
+                fid.write("\n")
+                yaml_field_to_file(fid, photo.filename, "file", indent="- ")
+                yaml_field_to_file(fid, photo.name, "name", indent="  ")
+                yaml_field_to_file(fid, photo.alt, "alt", indent="  ")
+                yaml_field_to_file(
+                    fid, photo.clean_caption, "caption", indent="  "
+                )
 
-            fid.write('\n')
-            fid.write('hashes:')
+            fid.write("\n")
+            fid.write("hashes:")
             for photo in self.photos:
-                fid.write('\n')
-                yaml_field_to_file(fid, photo.filename, 'file', indent='- ')
-                yaml_field_to_file(fid, hash(photo), 'hash', indent='  ')
+                fid.write("\n")
+                yaml_field_to_file(fid, photo.filename, "file", indent="- ")
+                yaml_field_to_file(fid, hash(photo), "hash", indent="  ")
         print("Updated album file: %s" % self._album_file)
-
 
     @classmethod
     def load(cls, album_dir):
         """ Load an Album class from an album directory """
         album_file = os.path.join(album_dir, settings.album_file)
-        data = {'album_dir': album_dir}
+        data = {"album_dir": album_dir}
         if os.path.exists(album_file):
-            with open(album_file, 'r') as fid:
+            with open(album_file, "r") as fid:
                 data.update(yaml.safe_load(fid))
         else:
             print("Skipping non-album directory: %s" % album_dir)
             return None
         album = cls(**data)
-        album.cover_path = os.path.join(settings.output_dir, album.name, 
-                settings.cover_filename)
+        album.cover_path = os.path.join(
+            settings.output_dir, album.name, settings.cover_filename
+        )
 
         all_photos = []
         for p in album.photos:
-            photo_path = os.path.join(album_dir, settings.photo_dir, p['file'])
-            caption = '' if p['caption'] is None else p['caption'].strip()
-            photo = Photo(album_name=album.name, original_path=photo_path,
-                    name=p['name'], alt=p['alt'], caption=caption,
-                    copyright=album.copyright)
+            photo_path = os.path.join(album_dir, settings.photo_dir, p["file"])
+            caption = "" if p["caption"] is None else p["caption"].strip()
+            photo = Photo(
+                album_name=album.name,
+                original_path=photo_path,
+                name=p["name"],
+                alt=p["alt"],
+                caption=caption,
+                copyright=album.copyright,
+            )
             all_photos.append(photo)
 
         album.photos = []
@@ -223,7 +244,6 @@ class Album(object):
                 continue
             album.photos.append(photo)
         return album
-
 
     def update(self):
         """ Update the processed images and the markdown file """
@@ -238,12 +258,17 @@ class Album(object):
         missing = [f for f in os.listdir(photo_dir) if not f in photo_files]
         missing.sort()
         for f in missing:
-            pho = Photo(album_name=self.name, 
-                    original_path=os.path.join(photo_dir, f), name=f,
-                    copyright=self.copyright)
+            pho = Photo(
+                album_name=self.name,
+                original_path=os.path.join(photo_dir, f),
+                name=f,
+                copyright=self.copyright,
+            )
             self.photos.append(pho)
-        logging.info("[%s] Found %i photos from yaml and photos dir" % 
-                (self.name, len(self.photos)))
+        logging.info(
+            "[%s] Found %i photos from yaml and photos dir"
+            % (self.name, len(self.photos))
+        )
 
         # Remove the photos whose files don't exist anymore
         to_remove = []
@@ -252,8 +277,10 @@ class Album(object):
                 to_remove.append(photo)
         for photo in to_remove:
             self.photos.remove(photo)
-        logging.info("[%s] Removed %i photos that have been deleted." % 
-                (self.name, len(to_remove)))
+        logging.info(
+            "[%s] Removed %i photos that have been deleted."
+            % (self.name, len(to_remove))
+        )
 
         # set the coverpath to the photo that should be the cover image
         for photo in self.photos:
@@ -267,17 +294,27 @@ class Album(object):
         # the current file on disk.
         photo_hashes = {}
         for photo in self.photos:
-            hsh = next((h['hash'] for h in self.hashes if h['file'] ==
-                photo.filename), None)
+            hsh = next(
+                (h["hash"] for h in self.hashes if h["file"] == photo.filename),
+                None,
+            )
             photo_hashes[photo] = hsh
 
-        to_process = [p for p in self.photos if not (p.has_sizes() and (
-            hash(p) == photo_hashes[p]))]
-        logging.info("[%s] There are %i photos to process." % (self.name, 
-            len(to_process)))
+        to_process = [
+            p
+            for p in self.photos
+            if not (p.has_sizes() and (hash(p) == photo_hashes[p]))
+        ]
+        logging.info(
+            "[%s] There are %i photos to process."
+            % (self.name, len(to_process))
+        )
         if to_process:
-            iterator = iter(to_process) if settings.verbose else tqdm(
-                    to_process, desc='Progress')
+            iterator = (
+                iter(to_process)
+                if settings.verbose
+                else tqdm(to_process, desc="Progress")
+            )
             for photo in iterator:
                 photo.create_sizes()
 
@@ -289,7 +326,6 @@ class Album(object):
         logging.info("[%s] Saving album yaml." % self.name)
         self.dump()
 
-
     ####################
     #                  #
     # Internal methods #
@@ -300,5 +336,5 @@ class Album(object):
         """ Create a backup of the album file if it exists """
         if not os.path.exists(self._album_file):
             return
-        backupfile = self._album_file + '.bak'
+        backupfile = self._album_file + ".bak"
         shutil.copy2(self._album_file, backupfile)

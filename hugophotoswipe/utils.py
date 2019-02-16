@@ -47,15 +47,15 @@ def modtime():
     return nowstr
 
 
-def yaml_field_to_file(fid, data, field, indent='', force_string=False):
+def yaml_field_to_file(fid, data, field, indent="", force_string=False):
     """ Handy function for writing pretty yaml """
     if data is None:
-        fid.write('%s%s:\n' % (indent, field))
+        fid.write("%s%s:\n" % (indent, field))
     else:
         if force_string:
-            fid.write('%s%s: \"%s\"\n' % (indent, field, data))
+            fid.write('%s%s: "%s"\n' % (indent, field, data))
         else:
-            fid.write('%s%s: %s\n' % (indent, field, data))
+            fid.write("%s%s: %s\n" % (indent, field, data))
 
 
 def question_yes_no(question, default=True):
@@ -65,12 +65,12 @@ def question_yes_no(question, default=True):
     else:
         extension = "[y/N/q]"
     while True:
-        user_input = six.moves.input('%s %s ' % (question, extension))
-        if user_input == 'q':
+        user_input = six.moves.input("%s %s " % (question, extension))
+        if user_input == "q":
             raise SystemExit
-        if user_input.lower() in ['y', 'yes']:
+        if user_input.lower() in ["y", "yes"]:
             return True
-        elif user_input.lower() in ['n', 'no']:
+        elif user_input.lower() in ["n", "no"]:
             return False
         elif not user_input:
             return default
@@ -88,6 +88,7 @@ class cached_property(object):
     https://github.com/django/django/blob/master/django/utils/functional.py
 
     """
+
     def __init__(self, func, name=None):
         self.func = func
         self.__doc__ = getattr(func, "__doc__")
