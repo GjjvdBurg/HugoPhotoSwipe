@@ -416,15 +416,15 @@ class Photo(object):
         )
         return shortcode
 
-    @property
+    @cached_property
     def width(self):
         """ The width of the original image """
-        return self.original_image.width
+        return Image.open(self.original_path).width
 
-    @property
+    @cached_property
     def height(self):
         """ The height of the original image """
-        return self.original_image.height
+        return Image.open(self.original_path).height
 
     def __key(self):
         return (self.original_path, self.name, self.alt, self.caption)
