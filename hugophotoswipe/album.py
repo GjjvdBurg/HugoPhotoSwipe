@@ -317,6 +317,7 @@ class Album(object):
             )
             for photo in iterator:
                 photo.create_sizes()
+                photo.original_image = None
 
         # Overwrite the markdown file
         logging.info("[%s] Writing markdown file." % self.name)

@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.2.4
+
+- Fix memory leak
+
 ## Version 0.2.3
 
 - Update to work with latest version of SmartCrop.py (fixes #28)
