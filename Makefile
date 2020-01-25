@@ -41,10 +41,10 @@ clean: ## Clean build dist and egg directories left after install
 		./${PACKAGE}/results/__pycache__
 
 dist: ## Make Python source distribution
-	python setup.py sdist
+	python setup.py sdist bdist_wheel
 
 dist2: ## Make Python 2 source distribution
-	python2 setup.py sdist
+	python2 setup.py sdist bdist_wheel
 
 docs: doc
 
