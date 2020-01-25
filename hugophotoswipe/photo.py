@@ -423,14 +423,14 @@ class Photo(object):
     @property
     def width(self):
         """ The width of the original image """
-        if self.original_image_width == None:
+        if self.original_image_width is None:
             self.original_image_width = self.original_image.width
         return self.original_image_width
 
     @property
     def height(self):
         """ The height of the original image """
-        if self.original_image_height == None:
+        if self.original_image_height is None:
             self.original_image_height = self.original_image.height
         return self.original_image_height
 
