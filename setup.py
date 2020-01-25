@@ -6,7 +6,7 @@ from setuptools import setup
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
-version = re.search("__version__ = '([^']+)'",
+version = re.search('__version__ = "([^"]+)"',
         open('hugophotoswipe/__init__.py').read()).group(1)
 
 setup(
