@@ -304,11 +304,12 @@ class Album(object):
             )
             photo_hashes[photo] = hsh
 
-        to_process = [
-            p
-            for p in self.photos
-            if not (p.has_sizes() and (hash(p) == photo_hashes[p]))
-        ]
+        to_process = []
+        for p in self.photos:
+            if not (p.has_sizes() and (hash(p) == photo_hashes[p])):
+                to_process.append(p)
+                del p.original_image
+
         logging.info(
             "[%s] There are %i photos to process."
             % (self.name, len(to_process))
@@ -321,6 +322,7 @@ class Album(object):
             )
             for photo in iterator:
                 photo.create_sizes()
+                del photo.original_image
 
         # Overwrite the markdown file
         logging.info("[%s] Writing markdown file." % self.name)

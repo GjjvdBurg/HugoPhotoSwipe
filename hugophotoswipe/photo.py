@@ -62,8 +62,10 @@ class Photo(object):
         # album
         self.album_name = album_name
 
-        # paths
+        # original image properties
         self.original_path = original_path
+        self.original_image_width = None
+        self.original_image_height = None
 
         # names
         self.name = name
@@ -84,7 +86,6 @@ class Photo(object):
     def original_image(self):
         """ Open original image and if needed rotate it according to EXIF """
         img = Image.open(self.original_path)
-
         # if there is no exif data, simply return the image
         exif = img._getexif()
         if exif is None:
@@ -421,12 +422,16 @@ class Photo(object):
     @property
     def width(self):
         """ The width of the original image """
-        return self.original_image.width
+        if self.original_image_width is None:
+            self.original_image_width = self.original_image.width
+        return self.original_image_width
 
     @property
     def height(self):
         """ The height of the original image """
-        return self.original_image.height
+        if self.original_image_height is None:
+            self.original_image_height = self.original_image.height
+        return self.original_image_height
 
     def __key(self):
         return (self.original_path, self.name, self.alt, self.caption)
