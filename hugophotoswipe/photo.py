@@ -141,7 +141,9 @@ class Photo(object):
         logging.info("[%s] Creating thumbnail size." % self.name)
         self.create_thumb(mode="thumb", pth=self.thumb_path)
         if not self.cover_path is None:
-            logging.info("[%s] Creating thumbnail for cover image." % self.name)
+            logging.info(
+                "[%s] Creating thumbnail for cover image." % self.name
+            )
             self.create_thumb(mode="cover", pth=self.cover_path)
 
     def create_rescaled(self, mode):

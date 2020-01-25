@@ -295,7 +295,11 @@ class Album(object):
         photo_hashes = {}
         for photo in self.photos:
             hsh = next(
-                (h["hash"] for h in self.hashes if h["file"] == photo.filename),
+                (
+                    h["hash"]
+                    for h in self.hashes
+                    if h["file"] == photo.filename
+                ),
                 None,
             )
             photo_hashes[photo] = hsh

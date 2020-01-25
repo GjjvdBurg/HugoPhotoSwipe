@@ -74,7 +74,9 @@ def parse_args():
         choices=["new", "update", "clean", "init"],
         help="action to do",
     )
-    parser.add_argument("album", nargs="?", help="album to apply the action to")
+    parser.add_argument(
+        "album", nargs="?", help="album to apply the action to"
+    )
     args = parser.parse_args()
     logging.basicConfig(
         level=args.loglevel,
