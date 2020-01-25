@@ -16,6 +16,7 @@ from __future__ import print_function
 import argparse
 import logging
 
+from . import __version__
 from .hugophotoswipe import HugoPhotoSwipe
 from .conf import settings, SETTINGS_FILENAME
 
@@ -52,7 +53,7 @@ def main():
 def parse_args():
     """ Parse the command line arguments """
     parser = argparse.ArgumentParser(
-        description="Integrate Hugo and PhotoSwipe"
+        prog="HugoPhotoSwipe", description="Integrate Hugo and PhotoSwipe"
     )
     parser.add_argument(
         "-v",
@@ -70,11 +71,19 @@ def parse_args():
         help=("Fast mode " "(tries less potential crops)"),
     )
     parser.add_argument(
+        "-V",
+        "--version",
+        action="version",
+        version="HugoPhotoSwipe v%s" % __version__,
+    )
+    parser.add_argument(
         "command",
         choices=["new", "update", "clean", "init"],
         help="action to do",
     )
-    parser.add_argument("album", nargs="?", help="album to apply the action to")
+    parser.add_argument(
+        "album", nargs="?", help="album to apply the action to"
+    )
     args = parser.parse_args()
     logging.basicConfig(
         level=args.loglevel,
