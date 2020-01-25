@@ -86,7 +86,6 @@ class Photo(object):
     def original_image(self):
         """ Open original image and if needed rotate it according to EXIF """
         img = Image.open(self.original_path)
-        logging.info("Image opened")
         # if there is no exif data, simply return the image
         exif = img._getexif()
         if exif is None:
