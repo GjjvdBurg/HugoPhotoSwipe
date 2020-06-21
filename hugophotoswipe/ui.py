@@ -71,10 +71,7 @@ def parse_args():
         help=("Fast mode " "(tries less potential crops)"),
     )
     parser.add_argument(
-        "-V",
-        "--version",
-        action="version",
-        version="HugoPhotoSwipe v%s" % __version__,
+        "-V", "--version", action="version", version=__version__,
     )
     parser.add_argument(
         "command",

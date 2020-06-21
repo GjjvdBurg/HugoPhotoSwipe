@@ -1,1 +1,3 @@
-__version__ = "0.2.4"
+# -*- coding: utf-8 -*-
+
+from .__version__ import __version__

@@ -1,9 +1,14 @@
-#
 # Makefile for easier installation and cleanup.
 #
+# Uses self-documenting macros from here:
+# http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+
+SHELL := bash
+.SHELLFLAGS := -eu -o pipefail -c
+MAKEFLAGS += --warn-undefined-variables --no-builtin-rules
 
 PACKAGE=hugophotoswipe
-DOC_DIR='./docs/'
+VENV_DIR=/tmp/hps_venv
 
 .PHONY: help
 
@@ -11,42 +16,63 @@ DOC_DIR='./docs/'
 
 help:
 	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) |\
-		 awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m\
-		 %s\n", $$1, $$2}'
+		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m\
+		%s\n", $$1, $$2}'
+
+################
+# Installation #
+################
+
+.PHONY: install
 
 install: ## Install for the current user using the default python command
 	python setup.py install --user
 
-install2: ## Install for the current user using the python2 command
-	python2 setup.py install --user
+################
+# Distribution #
+################
 
-test: ## Run nosetests using the default nosetests command
-	nosetests -v
+.PHONY: release dist
 
-test2: ## Run nosetests using the nosetests2 command
-	nosetests2 -v
-
-cover: ## Test unit test coverage using default nosetests
-	nosetests --with-coverage --cover-package=$(PACKAGE) \
-		--cover-erase --cover-inclusive --cover-branches
-
-cover2: ## Test unit test coverage using nosetests2
-	nosetests2 --with-coverage --cover-package=$(PACKAGE) \
-		--cover-erase --cover-inclusive --cover-branches
-
-clean: ## Clean build dist and egg directories left after install
-	rm -rf ./dist ./build ./$(PACKAGE).egg-info
-	rm -rf ./${PACKAGE}/*.pyc ./${PACKAGE}/*/*.pyc
-	rm -rf ./${PACKAGE}/__pycache__ ./${PACKAGE}/html/__pycache__\
-		./${PACKAGE}/results/__pycache__
+release: ## Make a release
+	python make_release.py
 
 dist: ## Make Python source distribution
 	python setup.py sdist bdist_wheel
 
-dist2: ## Make Python 2 source distribution
-	python2 setup.py sdist bdist_wheel
+###########
+# Testing #
+###########
 
-docs: doc
+.PHONY: test
 
-doc: install ## Build documentation with sphinx
-	$(MAKE) -C $(DOC_DIR) html
+test: venv ## Run nosetests using the default nosetests command
+	source $(VENV_DIR)/bin/activate && green -a -vv ./tests
+
+#######################
+# Virtual environment #
+#######################
+
+.PHONY: venv
+
+venv: $(VENV_DIR)/bin/activate
+
+$(VENV_DIR)/bin/activate:
+	test -d $(VENV_DIR) || virtualenv $(VENV_DIR)
+	source $(VENV_DIR)/bin/activate && pip install -e .[dev]
+	touch $(VENV_DIR)/bin/activate
+
+############
+# Clean up #
+############
+
+clean: ## Clean build dist and egg directories left after install
+	rm -rf ./dist
+	rm -rf ./build
+	rm -rf ./$(PACKAGE).egg-info
+	rm -rf ./cover
+	rm -rf $(VENV_DIR)
+	rm -f MANIFEST
+	rm -f ./*_valgrind.log*
+	find . -type f -iname '*.pyc' -delete
+	find . -type d -name '__pycache__' -empty -delete
