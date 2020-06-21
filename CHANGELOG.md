@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.2.5
+
+- Minor packaging and documentation improvements
+
 ## Version 0.2.4
 
 - Fix memory leak
