@@ -63,7 +63,9 @@ $ cd hugophotos
 
 Next, initialize a HugoPhotoSwipe configuration with:
 
+```
 $ hps init
+```
 
 This creates a new HugoPhotoSwipe configuration file, called
 `hugophotoswipe.yml`. This is a [YAML
