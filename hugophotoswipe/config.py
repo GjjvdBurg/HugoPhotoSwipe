@@ -56,6 +56,7 @@ DEFAULTS = {
     "exif": None,
     "iptc": None,
     "tag_map": None,
+    "generate_branch_bundle": False,
 }
 
 DONT_DUMP = ["verbose", "fast"]

@@ -27,6 +27,7 @@ The following options are available in the ``hugophotoswipe.yml`` file:
 | tag_map | None | Dictionary map of exif/iptc tags to photo properties |
 | exif | None | List of tags to be included or excluded |
 | iptc | None | List of tags to be included or excluded |
+| generate_branch_bundle | False | [Branch bundle](https://gohugo.io/content-management/page-bundles/#branch-bundles) output instead of single album file |
 
 Naturally, the jpeg options are only applied when ``output_format`` is 
 ``jpg``.
@@ -89,6 +90,26 @@ exif:
   exclude: ['tag1', 'tag2', ...]
 ```
 
+Branch Bundle Output
+--------------------
+
+This setting allows for two related goals:
+* Create a content page for each photo while maintaining the PhotoSwipe gallery
+  at album level.
+* Provide the basis for extracting additional properties such as EXIF tags
+  from the photos into front matter. This will allow you to use Hugo's taxonomy
+  capabilities to build albums based on tags, etc.
+
+The branch bundle output setting is designed for advanced users only. In its 
+present state, it will require significant rework to ensure the shortcodes 
+are applied correctly. You will need a `list.html` template that includes the
+`{{< wrap >}}` shortcode and iterates over the photos in the bundle. It will
+become significantly more useful once HugoPhotoSwipe supports extracting EXIF
+tags from the photos.
+
+Note: Enabling this setting will result in default album markdown files *not* 
+being generated as these would conflict with the branch bundle. 
+
 Shortcodes
 ==========
 
@@ -117,6 +138,12 @@ And in ``layouts/shortcodes/wrap.html``::
 
 The ``wrap`` shortcode is needed due to [this 
 issue](https://github.com/spf13/hugo/issues/1642) in Hugo.
+
+If you enable `generate_branch_bundle`, add ``layouts/_default/list.html``::
+
+    {{ range .Pages }}
+        {{ .Content }}
+    {{ end }}
 
 PhotoSwipe Javascript
 =====================

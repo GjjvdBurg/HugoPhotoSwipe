@@ -35,13 +35,13 @@ logging.getLogger('iptcinfo').setLevel('ERROR')  # Avoid warnings about missing 
 @total_ordering
 class Photo(object):
     def __init__(
-            self,
-            album_name=None,
-            original_path=None,
-            name=None,
-            alt=None,
-            caption=None,
-            copyright=None,
+        self,
+        album_name=None,
+        original_path=None,
+        name=None,
+        alt=None,
+        caption=None,
+        copyright=None,
     ):
         # album
         self.album_name = album_name
