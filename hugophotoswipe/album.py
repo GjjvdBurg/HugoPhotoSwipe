@@ -26,17 +26,17 @@ from .utils import yaml_field_to_file, modtime, question_yes_no, mkdirs
 
 class Album(object):
     def __init__(
-        self,
-        album_dir=None,
-        title=None,
-        album_date=None,
-        properties=None,
-        copyright=None,
-        coverimage=None,
-        creation_time=None,
-        modification_time=None,
-        photos=None,
-        hashes=None,
+            self,
+            album_dir=None,
+            title=None,
+            album_date=None,
+            properties=None,
+            copyright=None,
+            coverimage=None,
+            creation_time=None,
+            modification_time=None,
+            photos=None,
+            hashes=None,
     ):
 
         self._album_dir = album_dir
@@ -83,6 +83,10 @@ class Album(object):
         pth = os.path.realpath(settings.output_dir)
         return os.path.join(pth, self.name)
 
+    @property
+    def markdown_dir(self):
+        return os.path.join(os.path.realpath(settings.markdown_dir), self.name)
+
     ################
     #              #
     # User methods #
@@ -94,19 +98,24 @@ class Album(object):
 
         Ask the user for confirmation and only remove if it exists
         """
-        output_dir = os.path.join(settings.output_dir, self.name)
+        logging.getLogger().setLevel(logging.DEBUG)
         have_md = os.path.exists(self.markdown_file)
-        have_out = os.path.exists(output_dir)
-        q = "Going to remove: "
+        have_md_dir = os.path.exists(self.markdown_dir)
+        have_out = os.path.exists(self.output_dir)
+        logging.debug("Removal candidates: \n{}".format("\n".join(
+            [self.output_dir, self.markdown_dir, self.markdown_file])))
+
+        q = ["Going to remove: "]
         if have_md:
-            q += self.markdown_file
+            q.append("  - (File) {}".format(self.markdown_file))
+        if have_md_dir:
+            q.append("  - (Dir) {}".format(self.markdown_dir))
         if have_out:
-            q += " and " if have_md else ""
-            q += self.output_dir
-        q += ". Is this okay?"
-        if (not have_md) and (not have_out):
+            q.append("  - (Dir) {}".format(self.output_dir))
+        q.append("Is this okay?")
+        if True not in [have_md, have_md_dir, have_out]:
             return
-        if not question_yes_no(q):
+        if not question_yes_no("\n".join(q)):
             return
 
         if have_md:
@@ -115,11 +124,65 @@ class Album(object):
                 % (self.name, self.markdown_file)
             )
             os.unlink(self.markdown_file)
+        if have_md_dir:
+            logging.info(f"[{self.name}] Removing markdown directory: {self.markdown_dir}")
+            shutil.rmtree(self.markdown_dir)
         if have_out:
             logging.info(
-                "[%s] Removing images directory: %s" % (self.name, output_dir)
+                "[%s] Removing images directory: %s" % (self.name, self.output_dir)
             )
-            shutil.rmtree(output_dir)
+            shutil.rmtree(self.output_dir)
+
+    def create_markdown_bundle(self):
+        """ Create a branch bundle of markdown files, one per photo with an _index.md
+
+            Output is generated in a sub folder with the *album_name*. Each photo markdown file
+            will have the photo properties in front matter and the shortcode in content.
+        """
+        album_md_template = ("---",
+                             "title: {title}",
+                             "date: {date}",
+                             "{album_properties}",
+                             "---",
+                             )
+        album_md_template = "\n".join(album_md_template)
+        photo_md_template = ("---",
+                             "{exif}",
+                             "{photo_properties}",
+                             "---",
+                             "",
+                             "{shortcode}"
+                             )
+        photo_md_template = "\n".join(photo_md_template)
+
+        try:
+            album_properties = "\n".join(["{}: \"{}\"".format(k, v) for k, v in self.properties.items()])
+        except AttributeError:
+            album_properties = ""
+        logging.debug('album_properties text:\n\t'.format(album_properties))
+
+        album_dir = os.path.join(os.path.realpath(settings.markdown_dir), self.name)
+        mkdirs(album_dir)
+
+        with open(os.path.join(album_dir, "_index.md"), "w") as f:
+            logging.debug('Writing album md file to {}'.format(os.path.join(album_dir, "_index.md")))
+            f.write(album_md_template.format(title=self.title,
+                                             cover=self.coverimage,
+                                             date=self.album_date,
+                                             album_properties=album_properties))
+        for photo in self.photos:
+            logging.debug('Writing photo md file to {}'.format(os.path.join(album_dir, photo.clean_name) + ".md"))
+            with open(os.path.join(album_dir, photo.clean_name) + ".md", "w") as f:
+                try:
+                    photo_properties = "\n".join([f"{k}: \"{v}\"" for k, v in photo.properties.items()])
+                except AttributeError:
+                    photo_properties = ""
+
+                f.write(photo_md_template.format(
+                    exif="",
+                    shortcode=photo.shortcode,
+                    photo_properties=photo_properties,
+                ))
 
     def create_markdown(self):
         """ Create the markdown file, always overwrite existing """
@@ -127,8 +190,8 @@ class Album(object):
         coverpath = ""
         if not self.coverimage is None:
             coverpath = (
-                settings.url_prefix
-                + self.cover_path[len(settings.output_dir) :]
+                    settings.url_prefix
+                    + self.cover_path[len(settings.output_dir):]
             )
             # path should always be unix style for Hugo frontmatter
             coverpath = coverpath.replace("\\", "/")
@@ -247,6 +310,7 @@ class Album(object):
 
     def update(self):
         """ Update the processed images and the markdown file """
+        logging.getLogger().setLevel(logging.DEBUG)
         if not self.names_unique:
             print("Photo names for this album aren't unique. Not processing.")
             return
@@ -326,7 +390,12 @@ class Album(object):
 
         # Overwrite the markdown file
         logging.info("[%s] Writing markdown file." % self.name)
-        self.create_markdown()
+        logging.debug("Resource pages setting: {}".format(settings.photos_as_resource_pages))
+        if settings.photos_as_resource_pages:
+            self.create_markdown_bundle()
+        else:
+            logging.debug("Not doing where we wanted. Full dump of settings:\n{}".format(*settings))
+            self.create_markdown()
 
         # Overwrite the yaml file of the album
         logging.info("[%s] Saving album yaml." % self.name)

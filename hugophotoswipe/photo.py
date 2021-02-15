@@ -314,6 +314,25 @@ class Photo(object):
 
         return nwidth, nheight
 
+    @staticmethod
+    def as_url(path):
+        prefix = settings.url_prefix or ""
+        return (prefix + path[len(settings.output_dir):]).replace("\\", "/")
+
+    @property
+    def properties(self):
+        d = {
+            'name': self.clean_name,
+            'filetype': self.extension,
+            'copyright': self.copyright,
+            'caption': self.caption,
+            'alt': self.alt,
+            'original_height': self.height,
+            'original_width': self.width,
+            'thumb_url': self.as_url(self.thumb_path),
+        }
+        return d
+
     @property
     def clean_name(self):
         """ The name of the image without extension and spaces """
