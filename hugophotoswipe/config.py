@@ -53,6 +53,9 @@ DEFAULTS = {
     "jpeg_quality": 75,
     "fast": False,
     "verbose": False,
+    "exif": None,
+    "iptc": None,
+    "tag_map": None,
 }
 
 DONT_DUMP = ["verbose", "fast"]

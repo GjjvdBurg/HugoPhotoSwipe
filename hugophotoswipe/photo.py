@@ -17,8 +17,10 @@ import os
 import smartcrop
 import tempfile
 
+from PIL.TiffImagePlugin import IFDRational
 from PIL import Image
-from PIL import ExifTags
+from PIL.ExifTags import TAGS, GPSTAGS
+import iptcinfo3 as iptc3
 from functools import total_ordering
 from textwrap import wrap
 from textwrap import indent
@@ -50,11 +52,13 @@ class Photo(object):
         # names
         self.name = name
         self.alt = alt
-        self.caption = caption
+        self._caption = caption
 
         # other
-        self.copyright = copyright
+        self._copyright = copyright
         self.cover_path = None
+        self._exif = None
+        self._iptc = None
 
         # caching
         self._original_img = None
@@ -78,14 +82,13 @@ class Photo(object):
     def _load_original_image(self):
         img = Image.open(self.original_path)
         # if there is no exif data, simply return the image
-        exif = img._getexif()
+        self._load_exif(img)
+        exif = self._exif
         if exif is None:
             return img
 
         # get the orientation tag code from the ExifTags dict
-        orientation = next(
-            (k for k, v in ExifTags.TAGS.items() if v == "Orientation"), None
-        )
+        orientation = exif.get('Orientation')
         if orientation is None:
             print("Couldn't find orientation tag in ExifTags.TAGS")
             return img
@@ -105,12 +108,104 @@ class Photo(object):
         # fallback for unhandled rotation tags
         return img
 
+    def _load_exif(self, image):
+        if settings.exif:
+            tags = set(_filter_tags(TAGS.values(),
+                                    settings.exif.get('include'),
+                                    settings.exif.get('exclude')))
+            tags.add('Orientation')  # always need this for resize
+        else:
+            tags = TAGS.values()
+
+        exif_data = {}
+        exif = image._getexif() or {}
+        for k, v in exif.items():
+            decoded = TAGS.get(k)
+            if decoded in tags and not isinstance(v, IFDRational):  # Filter complex data values
+                exif_data[decoded] = v
+        for k, v in exif_data.pop('GPSInfo', {}).items():
+            decoded = GPSTAGS.get(k, k)
+            exif_data[decoded] = v
+        self._exif = exif_data
+
     def free(self):
         """Manually clean up the cached image"""
         if hasattr(self, "_original_img") and self._original_img:
             self._original_img.close()
             del self._original_img
         self._original_img = None
+
+    @property
+    def iptc(self):
+        if self._iptc is None:
+            if settings.iptc:
+                tags = _filter_tags(iptc3.c_datasets_r.keys(),
+                                    settings.iptc.get('include'),
+                                    settings.iptc.get('exclude'))
+            else:
+                tags = iptc3.c_datasets_r.keys()
+
+            info = iptc3.IPTCInfo(self.original_path)
+            iptc = {}
+            for k in tags:
+                if type(info[k]) is bytes:
+                    iptc[k] = info[k].decode('utf-8')
+                elif type(info[k]) is list:
+                    l = []
+                    for v in info[k]:
+                        l.append(v.decode('utf-8'))
+                    iptc[k] = l
+                else:
+                    iptc[k] = info[k]
+            self._iptc = iptc
+
+        return self._iptc
+
+    @property
+    def exif(self):
+        if not self._exif:
+            _ = self.original_image  # Trigger loading image and exif data
+        return self._exif
+
+    def _get_tag_value(self, tag):
+        assert tag is not None
+        try:
+            obj, t = tag.split('.')
+        except Exception as e:
+            logging.warning(e)
+            raise ValueError(f"Tag improperly formatted. Should be of format (exif/iptc).tag Provided: ({tag})")
+        if obj.lower() not in ['exif', 'iptc']:
+            raise ValueError(f"Tags can only reference iptc or exif data. ({tag})")
+        o = getattr(self, obj.lower(), {})
+        if o is None:
+            logging.warning(f'Tag "{tag}" specified but {obj} not loaded. Returning "".')
+            o = {}
+        return o.get(t, "")
+
+    @property
+    def caption(self):
+        if self._caption:
+            return self._caption
+        elif settings.tag_map and settings.tag_map.get('caption'):
+            return str(self._get_tag_value(settings.tag_map.get('caption')))
+        return ""
+
+    @property
+    def copyright(self):
+        if self._copyright:
+            return self._copyright
+        elif settings.tag_map and settings.tag_map.get('copyright'):
+            return str(self._get_tag_value(settings.tag_map.get('copyright')))
+        return ""
+
+    def __getattribute__(self, attr):
+        """ Allow property style access to all tags defined in settings.tag_map """
+        try:
+            return super().__getattribute__(attr)
+        except AttributeError as e:
+            if settings.tag_map and settings.tag_map.get(attr):
+                return self._get_tag_value(settings.tag_map.get(attr))
+            raise e
 
     def has_sizes(self):
         """ Check if all necessary sizes exist on disk """
@@ -435,3 +530,10 @@ class Photo(object):
 
     def __del__(self):
         self.free()
+
+
+def _filter_tags(tags, include=None, exclude=None):
+    exc = lambda k: True if not exclude else k not in exclude
+    inc = lambda k: True if not include else k in include
+    return filter(exc, filter(inc, tags))
+
