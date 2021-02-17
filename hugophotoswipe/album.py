@@ -14,14 +14,16 @@ from __future__ import print_function
 
 import logging
 import os
+import pprint
 import shutil
 import yaml
+from PIL import UnidentifiedImageError
 
 from tqdm import tqdm
 
 from .conf import settings
 from .photo import Photo
-from .utils import yaml_field_to_file, modtime, question_yes_no, mkdirs
+from .utils import yaml_field_to_file, modtime, question_yes_no, mkdirs, cached_property
 
 
 class Album(object):
@@ -47,7 +49,7 @@ class Album(object):
         self.title = title
         self.album_date = album_date
         self.properties = properties
-        self.copyright = copyright
+        self._copyright = copyright
         self.coverimage = coverimage
         self.creation_time = creation_time
         self.modification_time = modification_time
@@ -82,6 +84,21 @@ class Album(object):
         """ Base dir for the processed images """
         pth = os.path.realpath(settings.output_dir)
         return os.path.join(pth, self.name)
+
+    @property
+    def copyright(self):
+        if self._copyright:
+            return self._copyright
+        elif settings.tag_map and settings.tag_map.get('copyright'):
+            return self._copyright_from_photos(self.photos)
+        return ""
+
+    @staticmethod
+    def _copyright_from_photos(photos):
+        c = set()
+        for p in photos:
+            c.add(p.copyright)
+        return ", ".join(c) if len(c) > 0 else ""
 
     ################
     #              #
@@ -227,16 +244,22 @@ class Album(object):
         for p in album.photos:
             photo_path = os.path.join(album_dir, settings.photo_dir, p["file"])
             caption = "" if p["caption"] is None else p["caption"].strip()
-            photo = Photo(
-                album_name=album.name,
-                original_path=photo_path,
-                name=p["name"],
-                alt=p["alt"],
-                caption=caption,
-                copyright=album.copyright,
-            )
-            all_photos.append(photo)
+            try:
+                photo = Photo(
+                    album_name=album.name,
+                    original_path=photo_path,
+                    name=p["name"],
+                    alt=p["alt"],
+                    caption=caption,
+                    copyright=album._copyright,
+                )
+                all_photos.append(photo)
+            except PermissionError:
+                pass
+            except UnidentifiedImageError:
+                pass
 
+        album._copyright = album._copyright or album._copyright_from_photos(all_photos)
         album.photos = []
         for photo in all_photos:
             if photo.name is None:
@@ -258,13 +281,18 @@ class Album(object):
         missing = [f for f in os.listdir(photo_dir) if not f in photo_files]
         missing.sort()
         for f in missing:
-            pho = Photo(
-                album_name=self.name,
-                original_path=os.path.join(photo_dir, f),
-                name=f,
-                copyright=self.copyright,
-            )
-            self.photos.append(pho)
+            try:
+                pho = Photo(
+                    album_name=self.name,
+                    original_path=os.path.join(photo_dir, f),
+                    name=f,
+                    copyright=self.copyright,
+                )
+                self.photos.append(pho)
+            except PermissionError:
+                pass
+            except UnidentifiedImageError:
+                pass
         logging.info(
             "[%s] Found %i photos from yaml and photos dir"
             % (self.name, len(self.photos))

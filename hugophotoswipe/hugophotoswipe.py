@@ -53,6 +53,7 @@ class HugoPhotoSwipe(object):
 
     def update(self, name=None):
         """ Update all markdown and resizes for each album """
+        logging.getLogger().setLevel(logging.INFO)
         if name is None:
             for album in self._albums:
                 print("Updating album: %s" % album.name)
