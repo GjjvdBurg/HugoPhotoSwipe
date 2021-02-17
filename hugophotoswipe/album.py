@@ -98,12 +98,9 @@ class Album(object):
 
         Ask the user for confirmation and only remove if it exists
         """
-        logging.getLogger().setLevel(logging.DEBUG)
         have_md = os.path.exists(self.markdown_file)
         have_md_dir = os.path.exists(self.markdown_dir)
         have_out = os.path.exists(self.output_dir)
-        logging.debug("Removal candidates: \n{}".format("\n".join(
-            [self.output_dir, self.markdown_dir, self.markdown_file])))
 
         q = ["Going to remove: "]
         if have_md:
@@ -390,11 +387,9 @@ class Album(object):
 
         # Overwrite the markdown file
         logging.info("[%s] Writing markdown file." % self.name)
-        logging.debug("Resource pages setting: {}".format(settings.photos_as_resource_pages))
-        if settings.photos_as_resource_pages:
+        if settings.generate_branch_bundle:
             self.create_markdown_bundle()
         else:
-            logging.debug("Not doing where we wanted. Full dump of settings:\n{}".format(*settings))
             self.create_markdown()
 
         # Overwrite the yaml file of the album

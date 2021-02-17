@@ -50,7 +50,7 @@ DEFAULTS = {
     "jpeg_progressive": False,
     "jpeg_optimize": False,
     "jpeg_quality": 75,
-    "photos_as_resource_pages": False,
+    "generate_branch_bundle": False,
 }
 
 DONT_DUMP = ["verbose", "fast"]
