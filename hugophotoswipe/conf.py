@@ -105,6 +105,11 @@ class Settings(object):
 
         self.__dict__.update(entries)
 
+    def __getattr__(self, item):
+        # Fallback for missing settings. Return None instead of raising AttributeError
+        # https://docs.python.org/3/reference/datamodel.html#object.__getattr__
+        return None
+
     def dump(self, dirname=None):
         """ Write settings to yaml file """
         dirname = "" if dirname is None else dirname

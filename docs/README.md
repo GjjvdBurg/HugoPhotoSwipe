@@ -25,6 +25,9 @@ The following options are available in the ``hugophotoswipe.yml`` file:
 | jpeg_optimize | False | Optimize JPEG output |
 | jpeg_quality | 75 | JPEG quality factor |
 | generate_branch_bundle | False | [Branch bundle](https://gohugo.io/content-management/page-bundles/#branch-bundles) output instead of single album file |
+| tag_map | None | Dictionary map of exif/iptc tags to photo properties |
+| exif | None | List of tags to be included or excluded |
+| iptc | None | List of tags to be included or excluded |
 
 Naturally, the jpeg options are only applied when ``output_format`` is 
 ``jpg``.
@@ -62,6 +65,53 @@ tags from the photos.
 
 Note: Enabling this setting will result in default album markdown files *not* 
 being generated as these would conflict with the branch bundle. 
+
+EXIF/IPTC Tags
+--------------
+
+You can use the metadata embedded in the photos as a starter to fill out captions
+and copyright information. HugoPhotoSwipe will use this information when you run 
+`hps update` in the following manner:
+1. Prefer the information already specified in the album file
+2. Use the information in the metadata
+
+Using metadata requires a mapping for each field you want to be populated. Currently
+only caption and copyright are supported. In the configuration file, add the `tag_map`
+setting as follows:
+
+```yaml
+tag_map:
+  caption: exif.ImageDescription
+  copyright: exif.Artist
+```
+
+Caption will be saved to the album yaml file with the photo information. You can then
+edit it there if you wish. Because the album file is given priority, your changes will
+not be overridden, even after an update. 
+
+Copyright information is loaded from the photos in the album and populated into the 
+album copyright. All unique photo copyright values are added to the album, comma 
+separated.
+
+The format of the option is: `property: iptc/exif.tag`. Tag may include spaces. A full
+list of tags can be found here:
+* [IPTC tags](https://github.com/jamesacampbell/iptcinfo3/blob/a9cea6cb1981e4ad29cf317d44419e4fd45c2170/iptcinfo3.py#L445)
+* [EXIF tags](https://github.com/python-pillow/Pillow/blob/master/src/PIL/ExifTags.py)
+
+The following two configuration file options allow you more granular control over what
+metadata HugoPhotoSwipe loads from the file. The intended use is to reduce the number of
+tags that are saved. If you want to use a tag in the `tag_map`, it must included or 
+not be excluded. Specifying `include: []` will result in no data being loaded. 
+Not specifying either option will result in all tags being loaded.
+
+```yaml
+iptc:
+  include: ['tag1', 'tag2', ...]
+  exclude: ['tag1', 'tag2', ...]
+exif:
+  include: ['tag1', 'tag2', ...]
+  exclude: ['tag1', 'tag2', ...]
+```
 
 Shortcodes
 ==========

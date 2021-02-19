@@ -16,10 +16,14 @@ from __future__ import print_function, division
 import hashlib
 import logging
 import os
+import pprint
+
 import smartcrop
 import tempfile
 
-from PIL import Image, ExifTags
+from PIL.TiffImagePlugin import IFDRational
+from PIL import Image
+from PIL.ExifTags import TAGS, GPSTAGS
 from functools import total_ordering
 from textwrap import wrap
 from subprocess import check_output
@@ -70,11 +74,16 @@ class Photo(object):
         # names
         self.name = name
         self.alt = alt
-        self.caption = caption
+        self._caption = caption
 
         # other
-        self.copyright = copyright
+        self._copyright = copyright
         self.cover_path = None
+        self._exif = None
+        self._iptc = None
+
+        # process image to ensure it's a valid image.
+        self.original_image
 
     ################
     #              #
@@ -85,16 +94,14 @@ class Photo(object):
     @cached_property
     def original_image(self):
         """ Open original image and if needed rotate it according to EXIF """
-        img = Image.open(self.original_path)
         # if there is no exif data, simply return the image
-        exif = img._getexif()
+        img = Image.open(self.original_path)
+        exif = self.exif
         if exif is None:
             return img
 
         # get the orientation tag code from the ExifTags dict
-        orientation = next(
-            (k for k, v in ExifTags.TAGS.items() if v == "Orientation"), None
-        )
+        orientation = exif.get('Orientation')
         if orientation is None:
             print("Couldn't find orientation tag in ExifTags.TAGS")
             return img
@@ -113,6 +120,99 @@ class Photo(object):
 
         # fallback for unhandled rotation tags
         return img
+
+    @property
+    def iptc(self):
+        from iptcinfo3 import IPTCInfo, c_datasets_r
+
+        if self._iptc is None:
+            if settings.iptc:
+                tags = _filter_tags(c_datasets_r.keys(),
+                                    settings.iptc.get('include'),
+                                    settings.iptc.get('exclude'))
+            else:
+                tags = c_datasets_r.keys()
+
+            info = IPTCInfo(self.original_path)
+            iptc = {}
+            for k in tags:
+                if type(info[k]) is bytes:
+                    iptc[k] = info[k].decode('utf-8')
+                elif type(info[k]) is list:
+                    l = []
+                    for v in info[k]:
+                        l.append(v.decode('utf-8'))
+                    iptc[k] = l
+                else:
+                    iptc[k] = info[k]
+            self._iptc = iptc
+
+        return self._iptc
+
+    @property
+    def exif(self):
+        if self._exif is None:
+            if settings.exif:
+                tags = set(_filter_tags(TAGS.values(),
+                                    settings.exif.get('include'),
+                                    settings.exif.get('exclude')))
+                tags.add('Orientation')  # always need this for resize
+            else:
+                tags = TAGS.values()
+
+            exif_data = {}
+            exif = Image.open(self.original_path).getexif()
+            for k, v in exif.items():
+                decoded = TAGS.get(k)
+                if decoded in tags and not isinstance(v, IFDRational):  # Filter complex data values
+                    exif_data[decoded] = v
+            for k, v in exif_data.pop('GPSInfo', {}).items():
+                decoded = GPSTAGS.get(k, k)
+                exif_data[decoded] = v
+            self._exif = exif_data
+            del exif
+
+        return self._exif
+
+    def _get_tag_value(self, tag):
+        assert tag is not None
+        try:
+            obj, t = tag.split('.')
+        except Exception as e:
+            logging.warning(e)
+            raise ValueError(f"Tag improperly formatted. Should be of format (exif/iptc).tag Provided: ({tag})")
+        if obj.lower() not in ['exif', 'iptc']:
+            raise ValueError(f"Tags can only reference iptc or exif data. ({tag})")
+        o = getattr(self, obj.lower(), {})
+        if o is None:
+            logging.warning(f'Tag "{tag}" specified but {obj} not loaded. Returning "".')
+            o = {}
+        return o.get(t, "")
+
+    @property
+    def caption(self):
+        if self._caption:
+            return self._caption
+        elif settings.tag_map and settings.tag_map.get('caption'):
+            return str(self._get_tag_value(settings.tag_map.get('caption')))
+        return ""
+
+    @property
+    def copyright(self):
+        if self._copyright:
+            return self._copyright
+        elif settings.tag_map and settings.tag_map.get('copyright'):
+            return str(self._get_tag_value(settings.tag_map.get('copyright')))
+        return ""
+
+    def __getattribute__(self, attr):
+        """ Allow property style access to all tags defined in settings.tag_map """
+        try:
+            return super().__getattribute__(attr)
+        except AttributeError as e:
+            if settings.tag_map and settings.tag_map.get(attr):
+                return self._get_tag_value(settings.tag_map.get(attr))
+            raise e
 
     def has_sizes(self):
         """ Check if all necessary sizes exist on disk """
@@ -477,3 +577,10 @@ class Photo(object):
 
     def __eq__(self, other):
         return self.__key() == other.__key()
+
+
+def _filter_tags(tags, include=None, exclude=None):
+    exc = lambda k: True if not exclude else k not in exclude
+    inc = lambda k: True if not include else k in include
+    return filter(exc, filter(inc, tags))
+
