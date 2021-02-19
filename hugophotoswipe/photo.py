@@ -165,8 +165,6 @@ class Photo(object):
             for k, v in exif.items():
                 decoded = TAGS.get(k)
                 if decoded in tags and not isinstance(v, IFDRational):  # Filter complex data values
-                    if type(v) == bytes:
-                        v = v.decode('utf-8')
                     exif_data[decoded] = v
             for k, v in exif_data.pop('GPSInfo', {}).items():
                 decoded = GPSTAGS.get(k, k)
