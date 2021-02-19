@@ -165,6 +165,8 @@ class Photo(object):
             for k, v in exif.items():
                 decoded = TAGS.get(k)
                 if decoded in tags and not isinstance(v, IFDRational):  # Filter complex data values
+                    if type(v) == bytes:
+                        v = v.decode('utf-8')
                     exif_data[decoded] = v
             for k, v in exif_data.pop('GPSInfo', {}).items():
                 decoded = GPSTAGS.get(k, k)
@@ -211,8 +213,6 @@ class Photo(object):
             return super().__getattribute__(attr)
         except AttributeError as e:
             if settings.tag_map and settings.tag_map.get(attr):
-                logging.debug(f'Returning tag_map property value. {{{attr}: '
-                              f'{self._get_tag_value(settings.tag_map.get(attr))}}}')
                 return self._get_tag_value(settings.tag_map.get(attr))
             raise e
 
@@ -423,7 +423,12 @@ class Photo(object):
 
     @property
     def properties(self):
-        d = {
+        d = {}
+        if settings.tag_map:
+            for k in settings.tag_map.keys():
+                logging.debug(f'Photo tag_map property: {k}: {getattr(self, k)}')
+                d.update({k: getattr(self, k)})
+        d.update({
             'name': self.clean_name,
             'filetype': self.extension,
             'copyright': self.copyright,
@@ -432,11 +437,7 @@ class Photo(object):
             'original_height': self.height,
             'original_width': self.width,
             'thumb_url': self.as_url(self.thumb_path),
-        }
-        if settings.tag_map:
-            for k in settings.tag_map.keys():
-                logging.debug(f'Photo tag_map property: {k}: {getattr(self, k)}')
-                d.update({k: getattr(self, k)})
+        })
         return d
 
     @property
