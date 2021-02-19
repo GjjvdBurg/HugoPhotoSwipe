@@ -161,8 +161,7 @@ class Album(object):
         album_md_template = "\n".join(album_md_template)
         photo_md_template = ("+++",
                              "{photo_properties}",
-                             "{exif}",
-                             "{iptc}"
+                             "{exif}{iptc}"
                              "+++",
                              "",
                              "{shortcode}"

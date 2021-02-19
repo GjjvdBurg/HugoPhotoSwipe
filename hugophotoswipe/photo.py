@@ -431,6 +431,9 @@ class Photo(object):
             'original_width': self.width,
             'thumb_url': self.as_url(self.thumb_path),
         }
+        if settings.tag_map:
+            for k in settings.tag_map.keys():
+                d.update({k, getattr(self, k)})
         return d
 
     @property
