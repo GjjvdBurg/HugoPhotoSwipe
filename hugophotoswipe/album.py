@@ -14,7 +14,6 @@ from __future__ import print_function
 
 import logging
 import os
-import pprint
 import shutil
 import yaml
 from PIL import UnidentifiedImageError
@@ -23,7 +22,7 @@ from tqdm import tqdm
 
 from .conf import settings
 from .photo import Photo
-from .utils import yaml_field_to_file, modtime, question_yes_no, mkdirs, cached_property
+from .utils import yaml_field_to_file, modtime, question_yes_no, mkdirs
 
 
 class Album(object):

@@ -82,7 +82,7 @@ class Photo(object):
         self._exif = None
         self._iptc = None
 
-        # process load image to ensure it's a valid image.
+        # process image to ensure it's a valid image.
         self.original_image
 
     ################
