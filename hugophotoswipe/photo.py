@@ -435,7 +435,7 @@ class Photo(object):
         }
         if settings.tag_map:
             for k in settings.tag_map.keys():
-                logging.debug(f'Loading tag_map photo property: {k}')
+                logging.debug(f'Photo tag_map property: {k}: {getattr(self, k)}')
                 d.update({k, getattr(self, k)})
         return d
 
