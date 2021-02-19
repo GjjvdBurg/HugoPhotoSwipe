@@ -161,7 +161,7 @@ class Album(object):
         album_md_template = "\n".join(album_md_template)
         photo_md_template = ("+++",
                              "{photo_properties}",
-                             "{exif}{iptc}"
+                             "{exif_iptc}"
                              "+++",
                              "",
                              "{shortcode}"
@@ -185,6 +185,11 @@ class Album(object):
                                              album_properties=album_properties))
         for photo in self.photos:
             logging.debug('Writing photo md file to {}'.format(os.path.join(album_dir, photo.clean_name) + ".md"))
+            exif_iptc = {}
+            if settings.exif.get('dump', False):
+                exif_iptc.update(photo.exif)
+            if settings.iptc.get('dump', False):
+                exif_iptc.update(photo.iptc)
             with open(os.path.join(album_dir, photo.clean_name) + ".md", "w") as f:
                 try:
                     photo_properties = yaml.dump(photo.properties, default_flow_style=False)
@@ -192,8 +197,7 @@ class Album(object):
                     photo_properties = ""
 
                 f.write(photo_md_template.format(
-                    exif=yaml.dump(photo.exif, default_flow_style=False),
-                    iptc=yaml.dump(photo.iptc, default_flow_style=False),
+                    exif_iptc=yaml.dump(exif_iptc, default_flow_style=False),
                     shortcode=photo.shortcode,
                     photo_properties=photo_properties,
                 ))
