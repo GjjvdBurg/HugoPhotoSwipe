@@ -160,8 +160,9 @@ class Album(object):
                              )
         album_md_template = "\n".join(album_md_template)
         photo_md_template = ("---",
-                             "{exif}",
                              "{photo_properties}",
+                             "{exif}",
+                             "{iptc}"
                              "---",
                              "",
                              "{shortcode}"
@@ -192,7 +193,8 @@ class Album(object):
                     photo_properties = ""
 
                 f.write(photo_md_template.format(
-                    exif="",
+                    exif=photo.exif,
+                    iptc=photo.iptc,
                     shortcode=photo.shortcode,
                     photo_properties=photo_properties,
                 ))
