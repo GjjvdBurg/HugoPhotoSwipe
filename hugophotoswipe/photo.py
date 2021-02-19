@@ -211,6 +211,8 @@ class Photo(object):
             return super().__getattribute__(attr)
         except AttributeError as e:
             if settings.tag_map and settings.tag_map.get(attr):
+                logging.debug(f'Returning tag_map property value. {{{attr}: '
+                              f'{self._get_tag_value(settings.tag_map.get(attr))}}}')
                 return self._get_tag_value(settings.tag_map.get(attr))
             raise e
 
