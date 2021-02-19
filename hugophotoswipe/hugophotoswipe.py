@@ -39,8 +39,9 @@ class HugoPhotoSwipe(object):
         if name is None:
             name = six.moves.input("Please provide a name for the new album: ")
         album_dir = name.strip().rstrip("/").replace(" ", "_")
-        if os.path.exists(album_dir):
-            print("Can't create album with this name, it exists already.")
+        album_file = os.path.join(album_dir, settings.album_file)
+        if os.path.exists(album_file):
+            logging.warning("Can't create album with this name, it exists already.")
             raise SystemExit
         logging.info("Creating album directory")
         mkdirs(album_dir)
@@ -49,38 +50,38 @@ class HugoPhotoSwipe(object):
         album = Album(album_dir=album_dir, creation_time=modtime())
         logging.info("Saving album yaml")
         album.dump()
-        print("New album created.")
+        logging.info("New album created.")
 
     def update(self, name=None):
         """ Update all markdown and resizes for each album """
         if name is None:
             for album in self._albums:
-                print("Updating album: %s" % album.name)
+                logging.info("Updating album: %s" % album.name)
                 album.update()
-            print("All albums updated.")
+            logging.warning("All albums updated.")
         else:
             name = name.strip("/")
             album = next((a for a in self._albums if a.name == name), None)
             if album is None:
-                print("Couldn't find album with name %s. Stopping." % name)
+                logging.warning("Couldn't find album with name %s. Stopping." % name)
                 return
             album.update()
-            print("Album %s updated." % album.name)
+            logging.info("Album %s updated." % album.name)
 
     def clean(self, name=None):
         """ Clean up all markdown and resizes for each album """
         if name is None:
             for album in self._albums:
                 album.clean()
-            print("All albums cleaned.")
+            logging.info("All albums cleaned.")
         else:
             name = name.strip("/")
             album = next((a for a in self._albums if a.name == name), None)
             if album is None:
-                print("Couldn't find album with name %s. Stopping." % name)
+                logging.warning("Couldn't find album with name %s. Stopping." % name)
                 return
             album.clean()
-            print("Album %s cleaned." % album.name)
+            logging.info("Album %s cleaned." % album.name)
 
     ####################
     #                  #
@@ -90,12 +91,11 @@ class HugoPhotoSwipe(object):
 
     def _load_albums(self):
         """ Load all albums from the current directory """
-        local_objects = os.listdir(".")
-        local_dirs = [o for o in local_objects if os.path.isdir(o)]
-        album_dirs = [d.lstrip("./") for d in local_dirs]
+        logging.info('Loading all existing albums')
+        album_dirs = [p[0] for p in os.walk('.')]
         albums = []
         for album_dir in album_dirs:
-            logging.info("Loading album from dir: %s" % album_dir)
+            logging.debug("Loading album from dir: %s" % album_dir)
             album = Album.load(album_dir)
             if album is None:
                 continue

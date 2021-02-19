@@ -46,8 +46,6 @@ def main():
         hps.clean(name=album)
     else:
         raise ValueError("Unknown command: %s" % command)
-    logging.info("Dumping settings file.")
-    settings.dump(".")
 
 
 def parse_args():
@@ -61,8 +59,8 @@ def parse_args():
         help="Verbose mode",
         action="store_const",
         dest="loglevel",
-        const=logging.INFO,
-        default=logging.WARNING,
+        const=logging.DEBUG,
+        default=logging.INFO,
     )
     parser.add_argument(
         "-f",
@@ -82,10 +80,13 @@ def parse_args():
         "album", nargs="?", help="album to apply the action to"
     )
     args = parser.parse_args()
+
+    simple_fmt = "%(asctime)s %(message)s"
+    debug_fmt = "%(levelname).1s%(asctime)s%(funcName)-10.10s %(message)s"
     logging.basicConfig(
         level=args.loglevel,
         datefmt="[%Y-%m-%d %H:%M:%S]",
-        format="%(asctime)s - %(message)s",
+        format=(simple_fmt if args.loglevel != logging.DEBUG else debug_fmt),
     )
     settings.verbose = args.loglevel == logging.INFO
     settings.fast = args.fast
