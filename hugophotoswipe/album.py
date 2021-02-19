@@ -152,25 +152,25 @@ class Album(object):
             Output is generated in a sub folder with the *album_name*. Each photo markdown file
             will have the photo properties in front matter and the shortcode in content.
         """
-        album_md_template = ("---",
-                             "title: {title}",
-                             "date: {date}",
+        album_md_template = ("+++",
+                             "title = {title}",
+                             "date = {date}",
                              "{album_properties}",
-                             "---",
+                             "+++",
                              )
         album_md_template = "\n".join(album_md_template)
-        photo_md_template = ("---",
+        photo_md_template = ("+++",
                              "{photo_properties}",
                              "{exif}",
                              "{iptc}"
-                             "---",
+                             "+++",
                              "",
                              "{shortcode}"
                              )
         photo_md_template = "\n".join(photo_md_template)
 
         try:
-            album_properties = "\n".join(["{}: \"{}\"".format(k, v) for k, v in self.properties.items()])
+            album_properties = yaml.dump(self.properties, default_flow_style=False)
         except AttributeError:
             album_properties = ""
         logging.debug('album_properties text:\n\t'.format(album_properties))
@@ -188,13 +188,13 @@ class Album(object):
             logging.debug('Writing photo md file to {}'.format(os.path.join(album_dir, photo.clean_name) + ".md"))
             with open(os.path.join(album_dir, photo.clean_name) + ".md", "w") as f:
                 try:
-                    photo_properties = "\n".join([f"{k}: \"{v}\"" for k, v in photo.properties.items()])
+                    photo_properties = yaml.dump(photo.properties, default_flow_style=False)
                 except AttributeError:
                     photo_properties = ""
 
                 f.write(photo_md_template.format(
-                    exif=photo.exif,
-                    iptc=photo.iptc,
+                    exif=yaml.dump(photo.exif, default_flow_style=False),
+                    iptc=yaml.dump(photo.iptc, default_flow_style=False),
                     shortcode=photo.shortcode,
                     photo_properties=photo_properties,
                 ))
