@@ -168,9 +168,9 @@ class Album(object):
                              )
         photo_md_template = "\n".join(photo_md_template)
 
-        try:
+        if self.properties:
             album_properties = yaml.dump(self.properties, default_flow_style=False)
-        except AttributeError:
+        else:
             album_properties = ""
         logging.debug('album_properties text:\n\t'.format(album_properties))
 
@@ -185,11 +185,13 @@ class Album(object):
                                              album_properties=album_properties))
         for photo in self.photos:
             logging.debug('Writing photo md file to {}'.format(os.path.join(album_dir, photo.clean_name) + ".md"))
-            exif_iptc = {}
+            _ = {}
             if settings.exif.get('dump', False):
-                exif_iptc.update(photo.exif)
+                _.update(photo.exif)
             if settings.iptc.get('dump', False):
-                exif_iptc.update(photo.iptc)
+                _.update(photo.iptc)
+            exif_iptc = yaml.dump(_, default_flow_style=False) if _ and len(_) > 0 else ""
+
             with open(os.path.join(album_dir, photo.clean_name) + ".md", "w") as f:
                 try:
                     photo_properties = yaml.dump(photo.properties, default_flow_style=False)
@@ -197,7 +199,7 @@ class Album(object):
                     photo_properties = ""
 
                 f.write(photo_md_template.format(
-                    exif_iptc=yaml.dump(exif_iptc, default_flow_style=False),
+                    exif_iptc=exif_iptc,
                     shortcode=photo.shortcode,
                     photo_properties=photo_properties,
                 ))
