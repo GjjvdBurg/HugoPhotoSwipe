@@ -27,17 +27,17 @@ from .utils import yaml_field_to_file, modtime, question_yes_no, mkdirs
 
 class Album(object):
     def __init__(
-        self,
-        album_dir=None,
-        title=None,
-        album_date=None,
-        properties=None,
-        copyright=None,
-        coverimage=None,
-        creation_time=None,
-        modification_time=None,
-        photos=None,
-        hashes=None,
+            self,
+            album_dir=None,
+            title=None,
+            album_date=None,
+            properties=None,
+            copyright=None,
+            coverimage=None,
+            creation_time=None,
+            modification_time=None,
+            photos=None,
+            hashes=None,
     ):
 
         self._album_dir = album_dir
@@ -152,17 +152,22 @@ class Album(object):
             Output is generated in a sub folder with the *album_name*. Each photo markdown file
             will have the photo properties in front matter and the shortcode in content.
         """
-        album_md_template = ("+++",
+        # TODO: Hugo balks at the front matter formatting.
+        """
+        Error: Error building site: "C:\Users\SebastiaanLampo\Code Projects\sebastiaan-website\production\content\galleries\test\_d3_3337.md:2:1": unmarshal failed: Near line 0 (last key parsed ''): bare keys cannot contain ':'
+        Error: Error building site: "C:\Users\SebastiaanLampo\Code Projects\sebastiaan-website\production\content\galleries\test\_index.md:2:1": unmarshal failed: Near line 1 (last key parsed 'title'): expected value but found "None" instead
+        """
+        album_md_template = ("---",
                              "title = {title}",
                              "date = {date}",
                              "{album_properties}",
-                             "+++",
+                             "---",
                              )
         album_md_template = "\n".join(album_md_template)
-        photo_md_template = ("+++",
+        photo_md_template = ("---",
                              "{photo_properties}",
                              "{exif_iptc}"
-                             "+++",
+                             "---",
                              "",
                              "{shortcode}"
                              )
@@ -210,8 +215,8 @@ class Album(object):
         coverpath = ""
         if not self.coverimage is None:
             coverpath = (
-                settings.url_prefix
-                + self.cover_path[len(settings.output_dir) :]
+                    settings.url_prefix
+                    + self.cover_path[len(settings.output_dir):]
             )
             # path should always be unix style for Hugo frontmatter
             coverpath = coverpath.replace("\\", "/")
