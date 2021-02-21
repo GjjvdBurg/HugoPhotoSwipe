@@ -153,8 +153,8 @@ class Album(object):
             will have the photo properties in front matter and the shortcode in content.
         """
         album_md_template = ("---",
-                             "title = {title}",
-                             "date = {date}",
+                             "title: {title}",
+                             "date: {date}",
                              "{album_properties}",
                              "---",
                              )
