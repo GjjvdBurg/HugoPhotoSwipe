@@ -152,11 +152,6 @@ class Album(object):
             Output is generated in a sub folder with the *album_name*. Each photo markdown file
             will have the photo properties in front matter and the shortcode in content.
         """
-        # TODO: Hugo balks at the front matter formatting.
-        """
-        Error: Error building site: "C:\Users\SebastiaanLampo\Code Projects\sebastiaan-website\production\content\galleries\test\_d3_3337.md:2:1": unmarshal failed: Near line 0 (last key parsed ''): bare keys cannot contain ':'
-        Error: Error building site: "C:\Users\SebastiaanLampo\Code Projects\sebastiaan-website\production\content\galleries\test\_index.md:2:1": unmarshal failed: Near line 1 (last key parsed 'title'): expected value but found "None" instead
-        """
         album_md_template = ("---",
                              "title = {title}",
                              "date = {date}",
