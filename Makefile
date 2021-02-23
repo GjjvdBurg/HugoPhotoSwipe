@@ -58,7 +58,7 @@ test: venv ## Run nosetests using the default nosetests command
 venv: $(VENV_DIR)/bin/activate
 
 $(VENV_DIR)/bin/activate:
-	test -d $(VENV_DIR) || virtualenv $(VENV_DIR)
+	test -d $(VENV_DIR) || python -m venv $(VENV_DIR)
 	source $(VENV_DIR)/bin/activate && pip install -e .[dev]
 	touch $(VENV_DIR)/bin/activate
 
