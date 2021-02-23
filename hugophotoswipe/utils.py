@@ -9,40 +9,13 @@ License: GPL v3.
 
 """
 
-from __future__ import print_function
-
-import errno
-import os
-
-import six
-
 from datetime import datetime
-
-if six.PY2:
-    from tzlocal import get_localzone
-    import pytz
-else:
-    from datetime import timezone
-
-
-def mkdirs(path):
-    """ Create directories recursively and don't complain when they exist """
-    try:
-        os.makedirs(path)
-    except OSError as exc:
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else:
-            raise
+from datetime import timezone
 
 
 def modtime():
     """ Get the current local time as a string in iso format """
-    if six.PY2:
-        local_tz = get_localzone()
-        now = datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(local_tz)
-    else:
-        now = datetime.now(timezone.utc).astimezone()
+    now = datetime.now(timezone.utc).astimezone()
     nowstr = now.replace(microsecond=0).isoformat()
     return nowstr
 
@@ -65,7 +38,7 @@ def question_yes_no(question, default=True):
     else:
         extension = "[y/N/q]"
     while True:
-        user_input = six.moves.input("%s %s " % (question, extension))
+        user_input = input("%s %s " % (question, extension))
         if user_input == "q":
             raise SystemExit
         if user_input.lower() in ["y", "yes"]:
@@ -81,10 +54,10 @@ def question_yes_no(question, default=True):
 class cached_property(object):
     """Decorator for cached class properties
 
-    Decorator that converts a method with a single self argument into a 
+    Decorator that converts a method with a single self argument into a
     property cached on the instance.
 
-    From Django: 
+    From Django:
     https://github.com/django/django/blob/master/django/utils/functional.py
 
     """
