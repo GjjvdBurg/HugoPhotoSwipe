@@ -16,7 +16,7 @@ class PhotoTestCase(unittest.TestCase):
     def setUp(self):
         pth = os.path.realpath(__file__)
         dr = os.path.dirname(pth)
-        tst = os.path.join(dr, 'test.jpg')
+        tst = os.path.join(dr, 'album', 'photos', 'test.jpg')
         self.photo = Photo(album_name='test_album', original_path=tst, 
                 name='test_image', alt='Alt text', caption='caption text', 
                 copyright=None)
