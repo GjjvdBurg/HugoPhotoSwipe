@@ -154,9 +154,8 @@ class Photo(object):
     def create_thumb(self, mode=None, pth=None):
         """ Create the image thumbnail """
         if settings.use_smartcrop_js:
-            self.create_thumb_js(mode=mode, pth=pth)
-        else:
-            self.create_thumb_py(mode=mode, pth=pth)
+            return self.create_thumb_js(mode=mode, pth=pth)
+        return self.create_thumb_py(mode=mode, pth=pth)
 
     def create_thumb_py(self, mode=None, pth=None):
         """ Create the thumbnail using SmartCrop.py """

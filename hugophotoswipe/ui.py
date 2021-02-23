@@ -66,10 +66,13 @@ def parse_args():
         "-f",
         "--fast",
         action="store_true",
-        help=("Fast mode " "(tries less potential crops)"),
+        help=("Fast mode (attempts fewer potential crops for thumbnails)"),
     )
     parser.add_argument(
-        "-V", "--version", action="version", version=__version__,
+        "-V",
+        "--version",
+        action="version",
+        version=__version__,
     )
     parser.add_argument(
         "command",
