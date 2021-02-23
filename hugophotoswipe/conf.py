@@ -50,6 +50,7 @@ DEFAULTS = {
     "jpeg_progressive": False,
     "jpeg_optimize": False,
     "jpeg_quality": 75,
+    'fast': False
 }
 
 DONT_DUMP = ["verbose", "fast"]

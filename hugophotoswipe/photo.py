@@ -300,50 +300,23 @@ class Photo(object):
 
     @cached_property
     def large_path(self):
-        """ The path of the large resized image """
-        thedir = os.path.join(
-            settings.output_dir, self.album_name, settings.dirname_large
-        )
-        mkdirs(thedir)
-        width, height = self.resize_dims("large")
-        fname = "%s_%ix%i.%s" % (
-            self.clean_name,
-            width,
-            height,
-            settings.output_format,
-        )
-        return os.path.join(thedir, fname)
+        return self._get_path("large")
 
     @cached_property
     def small_path(self):
-        """ The path of the small resized image """
-        thedir = os.path.join(
-            settings.output_dir, self.album_name, settings.dirname_small
-        )
-        mkdirs(thedir)
-        width, height = self.resize_dims("small")
-        fname = "%s_%ix%i.%s" % (
-            self.clean_name,
-            width,
-            height,
-            settings.output_format,
-        )
-        return os.path.join(thedir, fname)
+        return self._get_path('small')
 
     @cached_property
     def thumb_path(self):
-        """ The path of the thumbnail image """
-        thedir = os.path.join(
-            settings.output_dir, self.album_name, settings.dirname_thumb
-        )
-        mkdirs(thedir)
-        width, height = self.resize_dims("thumb")
-        fname = "%s_%ix%i.%s" % (
-            self.clean_name,
-            width,
-            height,
-            settings.output_format,
-        )
+        return self._get_path('thumb')
+
+    def _get_path(self, mode):
+        mode_dir = getattr(settings, f"dirname_{mode}")
+        thedir = os.path.join(settings.output_dir, self.album_name, mode_dir)
+        os.makedirs(thedir, exist_ok=True)
+        width, height = self.resize_dims(mode)
+        ext = settings.output_format
+        fname = f"{self.clean_name}_{width:d}x{height:d}.{ext}"
         return os.path.join(thedir, fname)
 
     @property
