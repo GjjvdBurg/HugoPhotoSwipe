@@ -55,15 +55,26 @@ class Photo(object):
         self.copyright = copyright
         self.cover_path = None
 
+        # caching
+        self._original_img = None
+
     ################
     #              #
     # User methods #
     #              #
     ################
 
-    @cached_property
+    @property
     def original_image(self):
         """ Open original image and if needed rotate it according to EXIF """
+        if self._original_img:
+            return self._original_img
+
+        img = self._load_original_image()
+        self._original_img = img
+        return self._original_img
+
+    def _load_original_image(self):
         img = Image.open(self.original_path)
         # if there is no exif data, simply return the image
         exif = img._getexif()
@@ -409,3 +420,7 @@ class Photo(object):
 
     def __eq__(self, other):
         return self.__key() == other.__key()
+
+    def __del__(self):
+        if self._original_img:
+            self._original_img.close()

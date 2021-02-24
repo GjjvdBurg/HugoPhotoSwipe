@@ -148,6 +148,7 @@ class PhotoTestCase(unittest.TestCase):
                 img = Image.open(out_path)
                 self.assertEqual(img.width, size[0])
                 self.assertEqual(img.height, size[1])
+                img.close()
 
     def test_thumb(self):
         output_dir = os.path.join(self._tmpdir, "output")
@@ -169,6 +170,7 @@ class PhotoTestCase(unittest.TestCase):
                 img = Image.open(out_path)
                 self.assertEqual(img.width, size[0])
                 self.assertEqual(img.height, size[1])
+                img.close()
 
     @unittest.skip("TODO - Migrate photo hashing approach")
     def test_hash(self):
