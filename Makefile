@@ -46,8 +46,12 @@ dist: ## Make Python source distribution
 
 .PHONY: test
 
-test: venv ## Run nosetests using the default nosetests command
+test: venv ## Run unit tests in virtual environment
 	source $(VENV_DIR)/bin/activate && green -a -vv ./tests
+
+test_direct: ## Run unit tests without virtual environment (typically for CI)
+	pip install .[dev] && green -a -vv ./tests
+
 
 #######################
 # Virtual environment #
@@ -55,7 +59,7 @@ test: venv ## Run nosetests using the default nosetests command
 
 .PHONY: venv
 
-venv: $(VENV_DIR)/bin/activate
+venv: $(VENV_DIR)/bin/activate ## Create a virtual environment
 
 $(VENV_DIR)/bin/activate:
 	test -d $(VENV_DIR) || python -m venv $(VENV_DIR)
