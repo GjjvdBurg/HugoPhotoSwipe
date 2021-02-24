@@ -19,7 +19,7 @@ from tqdm import tqdm
 
 from .conf import settings
 from .photo import Photo
-from .utils import yaml_field_to_file, modtime, question_yes_no, mkdirs
+from .utils import yaml_field_to_file, modtime, question_yes_no
 
 
 class Album(object):
@@ -72,7 +72,7 @@ class Album(object):
     def markdown_file(self):
         """ Path of the markdown file """
         md_dir = os.path.realpath(settings.markdown_dir)
-        mkdirs(md_dir)
+        os.makedirs(md_dir, exist_ok=True)
         return os.path.join(md_dir, self.name + ".md")
 
     @property
