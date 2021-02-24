@@ -315,11 +315,11 @@ class Photo(object):
 
     @cached_property
     def small_path(self):
-        return self._get_path('small')
+        return self._get_path("small")
 
     @cached_property
     def thumb_path(self):
-        return self._get_path('thumb')
+        return self._get_path("thumb")
 
     def _get_path(self, mode):
         mode_dir = getattr(settings, f"dirname_{mode}")

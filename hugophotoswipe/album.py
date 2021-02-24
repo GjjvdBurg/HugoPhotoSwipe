@@ -88,7 +88,7 @@ class Album(object):
     ################
 
     def clean(self):
-        """ Clean up the processed images and the markdown file
+        """Clean up the processed images and the markdown file
 
         Ask the user for confirmation and only remove if it exists
         """
