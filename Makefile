@@ -50,7 +50,7 @@ test: venv ## Run unit tests in virtual environment
 	source $(VENV_DIR)/bin/activate && green -a -vv ./tests
 
 test_direct: ## Run unit tests without virtual environment (typically for CI)
-	pip install .[dev] && green -a -vv ./tests
+	pip install .[tests] && python -m unittest discover ./tests
 
 
 #######################
