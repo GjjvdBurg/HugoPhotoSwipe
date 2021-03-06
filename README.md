@@ -1,6 +1,7 @@
 # HugoPhotoSwipe
 
 [![PyPI version](https://badge.fury.io/py/hugophotoswipe.svg)](https://pypi.org/project/hugophotoswipe)
+[![Downloads](https://pepy.tech/badge/hugophotoswipe)](https://pepy.tech/project/hugophotoswipe)
 
 HugoPhotoSwipe is a command line application to easily create and manage
 [PhotoSwipe](http://photoswipe.com/) albums when using the
