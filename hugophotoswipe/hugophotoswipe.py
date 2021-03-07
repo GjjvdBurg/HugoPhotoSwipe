@@ -101,7 +101,7 @@ class HugoPhotoSwipe(object):
             if album is None:
                 if settings.auto_create_album:
                     logging.info(f'Found folder without album. Creating new album for {album_dir}')
-                    self.new(name=os.path.basename(album_dir))
+                    self.new(name=album_dir)
                     album = Album.load(album_dir)
                 else:
                     continue
