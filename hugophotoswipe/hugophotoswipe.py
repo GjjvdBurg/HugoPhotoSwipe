@@ -38,6 +38,7 @@ class HugoPhotoSwipe(object):
         """ Create new album """
         if name is None:
             name = six.moves.input("Please provide a name for the new album: ")
+        logging.info(f'Creating new album: {name}')
         album_dir = name.strip().rstrip("/").replace(" ", "_")
         album_file = os.path.join(album_dir, settings.album_file)
         if os.path.exists(album_file):
@@ -92,12 +93,17 @@ class HugoPhotoSwipe(object):
     def _load_albums(self):
         """ Load all albums from the current directory """
         logging.info('Loading all existing albums')
-        album_dirs = [p[0] for p in os.walk('.')]
+        album_dirs = [p[0] for p in os.walk('.') if p[0] != '.']
         albums = []
         for album_dir in album_dirs:
             logging.debug("Loading album from dir: %s" % album_dir)
             album = Album.load(album_dir)
             if album is None:
-                continue
+                if settings.auto_create_album:
+                    logging.info(f'Found folder without album. Creating new album for {album_dir}')
+                    self.new(name=os.path.basename(album_dir))
+                    album = Album.load(album_dir)
+                else:
+                    continue
             albums.append(album)
         return albums

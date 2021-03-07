@@ -185,6 +185,12 @@ class Album(object):
                                              album_properties=album_properties))
         for photo in self.photos:
             logging.debug('Writing photo md file to {}'.format(os.path.join(album_dir, photo.clean_name) + ".md"))
+            # try:
+            #     _ = photo.original_image  # Trigger loading the photo to test if it's a real, existing photo.
+            # except UnidentifiedImageError:
+            #     # skip to next photo
+            #     continue
+
             _ = {}
             if settings.exif.get('dump', False):
                 _.update(photo.exif)
@@ -322,8 +328,8 @@ class Album(object):
                 all_photos.append(photo)
             except PermissionError:
                 pass
-            except UnidentifiedImageError:
-                pass
+            # except UnidentifiedImageError:
+            #     pass
 
         album._copyright = album._copyright or album._copyright_from_photos(all_photos)
         album.photos = []
@@ -344,7 +350,8 @@ class Album(object):
         # self.photos
         photo_files = [p.filename for p in self.photos]
         photo_dir = os.path.join(self._album_dir, settings.photo_dir)
-        missing = [f for f in os.listdir(photo_dir) if not f in photo_files]
+        _, _, candidate_files = next(os.walk(photo_dir))
+        missing = [f for f in candidate_files if f not in photo_files]
         missing.sort()
         for f in missing:
             try:
@@ -354,11 +361,12 @@ class Album(object):
                     name=f,
                     copyright=self.copyright,
                 )
+                pho.original_image  # Force loading the image to test if it's real
                 self.photos.append(pho)
             except PermissionError:
-                pass
+                pass  # Most likely a directory instead of a file.
             except UnidentifiedImageError:
-                pass
+                pass  # Not a photo file
         logging.info(
             "[%s] Found %i photos from yaml and photos dir"
             % (self.name, len(self.photos))
@@ -400,9 +408,13 @@ class Album(object):
 
         to_process = []
         for p in self.photos:
-            if not (p.has_sizes() and (hash(p) == photo_hashes[p])):
-                to_process.append(p)
-                del p.original_image
+            try:
+                if not (p.has_sizes() and (hash(p) == photo_hashes[p])):
+                    to_process.append(p)
+                    del p.original_image
+            except UnidentifiedImageError:
+                # not an image file. Skip adding.
+                pass
 
         logging.info(
             "[%s] There are %i photos to process."
