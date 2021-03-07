@@ -83,7 +83,7 @@ class Photo(object):
         self._iptc = None
 
         # process image to ensure it's a valid image.
-        self.original_image
+        # self.original_image
 
     ################
     #              #
