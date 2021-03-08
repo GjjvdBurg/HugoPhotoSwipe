@@ -22,7 +22,7 @@ import smartcrop
 import tempfile
 
 from PIL.TiffImagePlugin import IFDRational
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 from PIL.ExifTags import TAGS, GPSTAGS
 from functools import total_ordering
 from textwrap import wrap
@@ -37,7 +37,6 @@ if six.PY2:
 
     def indent(text, prefix, predicate=None):
         if predicate is None:
-
             def predicate(line):
                 return line.strip()
 
@@ -55,13 +54,13 @@ else:
 @total_ordering
 class Photo(object):
     def __init__(
-        self,
-        album_name=None,
-        original_path=None,
-        name=None,
-        alt=None,
-        caption=None,
-        copyright=None,
+            self,
+            album_name=None,
+            original_path=None,
+            name=None,
+            alt=None,
+            caption=None,
+            copyright=None,
     ):
         # album
         self.album_name = album_name
@@ -94,9 +93,10 @@ class Photo(object):
     @cached_property
     def original_image(self):
         """ Open original image and if needed rotate it according to EXIF """
+        logging.info(f'Loading original image. Photo: {self.original_path}')
         # if there is no exif data, simply return the image
-        img = Image.open(self.original_path)
         exif = self.exif
+        img = Image.open(self.original_path)
         if exif is None:
             return img
 
@@ -154,14 +154,16 @@ class Photo(object):
         if self._exif is None:
             if settings.exif:
                 tags = set(_filter_tags(TAGS.values(),
-                                    settings.exif.get('include'),
-                                    settings.exif.get('exclude')))
+                                        settings.exif.get('include'),
+                                        settings.exif.get('exclude')))
                 tags.add('Orientation')  # always need this for resize
             else:
                 tags = TAGS.values()
 
             exif_data = {}
-            exif = Image.open(self.original_path).getexif()
+            # Crucial to use as with statement to avoid memory leak
+            with Image.open(self.original_path) as im:
+                exif = im.getexif()
             for k, v in exif.items():
                 decoded = TAGS.get(k)
                 if decoded in tags and not isinstance(v, IFDRational):  # Filter complex data values
@@ -225,7 +227,7 @@ class Photo(object):
         if not os.path.exists(self.thumb_path):
             return False
         if (not self.cover_path is None) and (
-            not os.path.exists(self.cover_path)
+                not os.path.exists(self.cover_path)
         ):
             return False
         return True
@@ -588,4 +590,3 @@ def _filter_tags(tags, include=None, exclude=None):
     exc = lambda k: True if not exclude else k not in exclude
     inc = lambda k: True if not include else k in include
     return filter(exc, filter(inc, tags))
-

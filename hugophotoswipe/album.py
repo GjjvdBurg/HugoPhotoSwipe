@@ -24,6 +24,8 @@ from .conf import settings
 from .photo import Photo
 from .utils import yaml_field_to_file, modtime, question_yes_no, mkdirs
 
+logger = logging.getLogger(__name__)
+
 
 class Album(object):
     def __init__(
@@ -48,7 +50,7 @@ class Album(object):
         self.title = title
         self.album_date = album_date
         self.properties = properties
-        self._copyright = copyright
+        self.copyright = copyright
         self.coverimage = coverimage
         self.creation_time = creation_time
         self.modification_time = modification_time
@@ -87,21 +89,6 @@ class Album(object):
     @property
     def markdown_dir(self):
         return os.path.join(os.path.realpath(settings.markdown_dir), self.name)
-
-    @property
-    def copyright(self):
-        if self._copyright:
-            return self._copyright
-        elif settings.tag_map and settings.tag_map.get('copyright'):
-            return self._copyright_from_photos(self.photos)
-        return ""
-
-    @staticmethod
-    def _copyright_from_photos(photos):
-        c = set()
-        for p in photos:
-            c.add(p.copyright)
-        return ", ".join(c) if len(c) > 0 else ""
 
     ################
     #              #
@@ -184,7 +171,8 @@ class Album(object):
                                              date=self.album_date,
                                              album_properties=album_properties))
         for photo in self.photos:
-            logging.debug('Writing photo md file to {}'.format(os.path.join(album_dir, photo.clean_name) + ".md"))
+            logging.info('Writing photo md file to {}'.format(os.path.join(album_dir, photo.clean_name) + ".md"))
+
             _ = {}
             if settings.exif.get('dump', False):
                 _.update(photo.exif)
@@ -317,15 +305,14 @@ class Album(object):
                     name=p["name"],
                     alt=p["alt"],
                     caption=caption,
-                    copyright=album._copyright,
+                    copyright=album.copyright,
                 )
                 all_photos.append(photo)
             except PermissionError:
                 pass
-            except UnidentifiedImageError:
-                pass
+            # except UnidentifiedImageError:
+            #     pass
 
-        album._copyright = album._copyright or album._copyright_from_photos(all_photos)
         album.photos = []
         for photo in all_photos:
             if photo.name is None:
@@ -336,17 +323,21 @@ class Album(object):
 
     def update(self):
         """ Update the processed images and the markdown file """
+        # logger.setLevel(logging.DEBUG)
+        logger.info(f'Processing update of album. {self.name}')
         if not self.names_unique:
-            print("Photo names for this album aren't unique. Not processing.")
+            logging.warning("Photo names for this album aren't unique. Not processing.")
             return
         # Make sure the list of photos from the yaml is up to date with
         # the photos in the directory, simply add all the new photos to
         # self.photos
         photo_files = [p.filename for p in self.photos]
         photo_dir = os.path.join(self._album_dir, settings.photo_dir)
-        missing = [f for f in os.listdir(photo_dir) if not f in photo_files]
+        _, _, candidate_files = next(os.walk(photo_dir))
+        missing = [f for f in candidate_files if f not in photo_files]
         missing.sort()
         for f in missing:
+            logger.info(f'\tLoading photo file: {f}')
             try:
                 pho = Photo(
                     album_name=self.name,
@@ -354,12 +345,16 @@ class Album(object):
                     name=f,
                     copyright=self.copyright,
                 )
+                _ = pho.original_image  # Force loading the image to test if it's real
+                # del _
+                # logger.debug(f'Object situation: {gc.get_objects()}')
+                # gc.collect()
                 self.photos.append(pho)
             except PermissionError:
-                pass
+                pass  # Most likely a directory instead of a file.
             except UnidentifiedImageError:
-                pass
-        logging.info(
+                pass  # Not a photo file
+        logger.info(
             "[%s] Found %i photos from yaml and photos dir"
             % (self.name, len(self.photos))
         )
@@ -371,7 +366,7 @@ class Album(object):
                 to_remove.append(photo)
         for photo in to_remove:
             self.photos.remove(photo)
-        logging.info(
+        logger.info(
             "[%s] Removed %i photos that have been deleted."
             % (self.name, len(to_remove))
         )
@@ -402,7 +397,6 @@ class Album(object):
         for p in self.photos:
             if not (p.has_sizes() and (hash(p) == photo_hashes[p])):
                 to_process.append(p)
-                del p.original_image
 
         logging.info(
             "[%s] There are %i photos to process."
