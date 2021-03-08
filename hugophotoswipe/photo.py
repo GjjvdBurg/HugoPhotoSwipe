@@ -96,30 +96,30 @@ class Photo(object):
         logging.info(f'Loading original image. Photo: {self.original_path}')
         # if there is no exif data, simply return the image
         exif = self.exif
-        img = Image.open(self.original_path)
-        if exif is None:
+        with Image.open(self.original_path) as img:
+            if exif is None:
+                return img
+
+            # get the orientation tag code from the ExifTags dict
+            orientation = exif.get('Orientation')
+            if orientation is None:
+                print("Couldn't find orientation tag in ExifTags.TAGS")
+                return img
+
+            # if no orientation is defined in the exif, return the image
+            if not orientation in exif:
+                return img
+
+            # rotate the image according to the exif
+            if exif[orientation] == 3:
+                return img.rotate(180, expand=True)
+            elif exif[orientation] == 6:
+                return img.rotate(270, expand=True)
+            elif exif[orientation] == 8:
+                return img.rotate(90, expand=True)
+
+            # fallback for unhandled rotation tags
             return img
-
-        # get the orientation tag code from the ExifTags dict
-        orientation = exif.get('Orientation')
-        if orientation is None:
-            print("Couldn't find orientation tag in ExifTags.TAGS")
-            return img
-
-        # if no orientation is defined in the exif, return the image
-        if not orientation in exif:
-            return img
-
-        # rotate the image according to the exif
-        if exif[orientation] == 3:
-            return img.rotate(180, expand=True)
-        elif exif[orientation] == 6:
-            return img.rotate(270, expand=True)
-        elif exif[orientation] == 8:
-            return img.rotate(90, expand=True)
-
-        # fallback for unhandled rotation tags
-        return img
 
     @property
     def iptc(self):
