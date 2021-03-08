@@ -516,6 +516,15 @@ class Photo(object):
     @property
     def shortcode(self):
         """ Generate the shortcode for the Markdown file """
+        def escape_string(str):
+            try:
+                if '"' in str:
+                    repl = str.replace('"', '\\\"')
+                    logging.info(f'Escaping string: {str}\n{repl}')
+                return str.replace('"', '\\\"')
+            except:
+                return str
+
         prefix = "" if settings.url_prefix is None else settings.url_prefix
         L = len(settings.output_dir)
         large_path = (prefix + self.large_path[L:]).replace("\\", "/")
@@ -539,9 +548,9 @@ class Photo(object):
             small_dim=small_dim,
             thumb=thumb_path,
             thumb_dim=thumb_dim,
-            alt=self.alt,
-            caption=caption,
-            copyright=copyright,
+            alt=escape_string(self.alt),
+            caption=escape_string(caption),
+            copyright=escape_string(copyright),
         )
         return shortcode
 
