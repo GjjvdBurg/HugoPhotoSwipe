@@ -106,4 +106,5 @@ class HugoPhotoSwipe(object):
                 else:
                     continue
             albums.append(album)
+            logging.debug(f'Loaded album {album.name} in directory {album_dir}')
         return albums

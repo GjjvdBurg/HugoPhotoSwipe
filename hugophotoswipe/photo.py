@@ -96,30 +96,30 @@ class Photo(object):
         logging.info(f'Loading original image. Photo: {self.original_path}')
         # if there is no exif data, simply return the image
         exif = self.exif
-        img = Image.open(self.original_path)
-        if exif is None:
+        with Image.open(self.original_path) as img:
+            if exif is None:
+                return img
+
+            # get the orientation tag code from the ExifTags dict
+            orientation = exif.get('Orientation')
+            if orientation is None:
+                print("Couldn't find orientation tag in ExifTags.TAGS")
+                return img
+
+            # if no orientation is defined in the exif, return the image
+            if not orientation in exif:
+                return img
+
+            # rotate the image according to the exif
+            if exif[orientation] == 3:
+                return img.rotate(180, expand=True)
+            elif exif[orientation] == 6:
+                return img.rotate(270, expand=True)
+            elif exif[orientation] == 8:
+                return img.rotate(90, expand=True)
+
+            # fallback for unhandled rotation tags
             return img
-
-        # get the orientation tag code from the ExifTags dict
-        orientation = exif.get('Orientation')
-        if orientation is None:
-            print("Couldn't find orientation tag in ExifTags.TAGS")
-            return img
-
-        # if no orientation is defined in the exif, return the image
-        if not orientation in exif:
-            return img
-
-        # rotate the image according to the exif
-        if exif[orientation] == 3:
-            return img.rotate(180, expand=True)
-        elif exif[orientation] == 6:
-            return img.rotate(270, expand=True)
-        elif exif[orientation] == 8:
-            return img.rotate(90, expand=True)
-
-        # fallback for unhandled rotation tags
-        return img
 
     @property
     def iptc(self):
@@ -516,6 +516,15 @@ class Photo(object):
     @property
     def shortcode(self):
         """ Generate the shortcode for the Markdown file """
+        def escape_string(str):
+            try:
+                if '"' in str:
+                    repl = str.replace('"', '\\\"')
+                    logging.info(f'Escaping string: {str}\n{repl}')
+                return str.replace('"', '\\\"')
+            except:
+                return str
+
         prefix = "" if settings.url_prefix is None else settings.url_prefix
         L = len(settings.output_dir)
         large_path = (prefix + self.large_path[L:]).replace("\\", "/")
@@ -539,9 +548,9 @@ class Photo(object):
             small_dim=small_dim,
             thumb=thumb_path,
             thumb_dim=thumb_dim,
-            alt=self.alt,
-            caption=caption,
-            copyright=copyright,
+            alt=escape_string(self.alt),
+            caption=escape_string(caption),
+            copyright=escape_string(copyright),
         )
         return shortcode
 
