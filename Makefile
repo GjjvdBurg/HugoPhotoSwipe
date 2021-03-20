@@ -47,10 +47,10 @@ dist: ## Make Python source distribution
 .PHONY: test
 
 test: venv ## Run unit tests in virtual environment
-	source $(VENV_DIR)/bin/activate && green -a -vv ./tests
+	source $(VENV_DIR)/bin/activate && green -a -s 1 -vv ./tests
 
 test_direct: ## Run unit tests without virtual environment (typically for CI)
-	pip install .[tests] && python -m unittest discover ./tests
+	pip install .[tests] && python -m unittest discover -v ./tests
 
 
 #######################
@@ -69,6 +69,9 @@ $(VENV_DIR)/bin/activate:
 ############
 # Clean up #
 ############
+
+clean_venv: ## Clean up the virtual environment
+	rm -rf $(VENV_DIR)
 
 clean: ## Clean build dist and egg directories left after install
 	rm -rf ./dist
