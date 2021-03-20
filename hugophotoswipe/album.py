@@ -219,7 +219,7 @@ class Album(object):
             with open(album_file, "r") as fid:
                 data.update(yaml.safe_load(fid))
         else:
-            print("Skipping non-album directory: %s" % album_dir)
+            logging.warning("Skipping non-album directory: %s" % album_dir)
             return None
 
         album = cls(**data)
@@ -247,7 +247,9 @@ class Album(object):
         album.photos = []
         for photo in all_photos:
             if photo.name is None:
-                print("No name defined for photo %r. Using filename." % photo)
+                logging.warning(
+                    "No name defined for photo %r. Using filename." % photo
+                )
                 photo.name = os.path.basename(photo.original_path)
             album.photos.append(photo)
         return album
@@ -255,7 +257,9 @@ class Album(object):
     def update(self, modification_time=None):
         """ Update the processed images and the markdown file """
         if not self.names_unique:
-            print("Photo names for this album aren't unique. Not processing.")
+            logging.error(
+                "Photo names for this album aren't unique. Not processing."
+            )
             return
 
         # Make sure the list of photos from the yaml is up to date with
