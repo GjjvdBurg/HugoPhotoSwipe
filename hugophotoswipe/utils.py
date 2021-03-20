@@ -22,9 +22,11 @@ def modtime():
 
 def yaml_field_to_file(fp, data, field, indent="", force_string=False):
     """ Handy function for writing pretty yaml """
-    if data is None or not data.strip():
+    if data is None:
         return fp.write("%s%s:\n" % (indent, field))
-    fmt = "%s%s: \"%s\"\n" if force_string else "%s%s: %s\n"
+    if isinstance(data, str) and len(data) == 0:
+        return fp.write("%s%s:\n" % (indent, field))
+    fmt = '%s%s: "%s"\n' if force_string else "%s%s: %s\n"
     fp.write(fmt % (indent, field, data))
 
 
