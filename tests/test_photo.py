@@ -27,6 +27,8 @@ class PhotoTestCase(unittest.TestCase):
             copyright=None,
         )
         self._tmpdir = tempfile.mkdtemp(prefix="hps_photo_")
+        # Reset settings after each test
+        settings.__init__(**dict())
 
     def tearDown(self):
         shutil.rmtree(self._tmpdir)
@@ -146,6 +148,26 @@ class PhotoTestCase(unittest.TestCase):
                 out_path = self.photo.create_rescaled(mode)
                 # open the image and check the size
                 img = Image.open(out_path)
+                self.assertEqual(img.width, size[0])
+                self.assertEqual(img.height, size[1])
+                img.close()
+
+    def test_rescaled_png(self):
+        output_dir = os.path.join(self._tmpdir, "output")
+        setattr(settings, "output_format", "png")
+        setattr(settings, "output_dir", output_dir)
+        setattr(settings, "dim_max_large", "1600")
+        setattr(settings, "dim_max_small", "800")
+
+        modes = ["large", "small"]
+        sizes = [(1600, 1066), (800, 533)]
+
+        for mode, size in zip(modes, sizes):
+            with self.subTest(mode=mode):
+                out_path = self.photo.create_rescaled(mode)
+                # open the image and check the size
+                img = Image.open(out_path)
+                self.assertEqual(img.format, "PNG")
                 self.assertEqual(img.width, size[0])
                 self.assertEqual(img.height, size[1])
                 img.close()
