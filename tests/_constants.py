@@ -217,7 +217,7 @@ photos:
 
 hashes:
 - file: dog-1.jpg
-  hash: sha256:a72301c6ec8d463e51e6d91aaf4a1d00f17e993515e4389b1760c5bb6f1bbcfa
+  hash: sha256:6636c5dcd0ad663f6a2e213f3f6da6c1e46bec06ec4a77c8cb99da14cbf30a37
 
 - file: dog-2.jpg
   hash: sha256:b09c4ddbbcf053d521539a8a498f7b745313561371dcbb9500687951f2dc7b4e
