@@ -71,7 +71,7 @@ class Album(object):
     @property
     def markdown_file(self):
         """ Path of the markdown file """
-        md_dir = os.path.realpath(settings.markdown_dir)
+        md_dir = os.path.abspath(settings.markdown_dir)
         os.makedirs(md_dir, exist_ok=True)
         return os.path.join(md_dir, self.name + ".md")
 
