@@ -87,10 +87,12 @@ class Album(object):
     #              #
     ################
 
-    def clean(self):
+    def clean(self, force=False):
         """Clean up the processed images and the markdown file
 
         Ask the user for confirmation and only remove if it exists
+
+        If ``force = True``, don't ask for confirmation.
         """
         output_dir = os.path.join(settings.output_dir, self.name)
         have_md = os.path.exists(self.markdown_file)
@@ -104,7 +106,7 @@ class Album(object):
         q += ". Is this okay?"
         if (not have_md) and (not have_out):
             return
-        if not question_yes_no(q):
+        if not force and not question_yes_no(q):
             return
 
         if have_md:
@@ -158,7 +160,7 @@ class Album(object):
             fid.write("\n".join(txt))
         print("Written markdown file: %s" % self.markdown_file)
 
-    def dump(self):
+    def dump(self, modification_time=None):
         """ Save the album configuration to a YAML file """
         if self._album_file is None:
             raise ValueError("Album file is not defined.")
@@ -182,8 +184,9 @@ class Album(object):
             yaml_field_to_file(
                 fid, self.creation_time, "creation_time", force_string=True
             )
+            modification_time = modification_time or modtime()
             yaml_field_to_file(
-                fid, modtime(), "modification_time", force_string=True
+                fid, modification_time, "modification_time", force_string=True
             )
 
             fid.write("\n")
@@ -249,11 +252,12 @@ class Album(object):
             album.photos.append(photo)
         return album
 
-    def update(self):
+    def update(self, modification_time=None):
         """ Update the processed images and the markdown file """
         if not self.names_unique:
             print("Photo names for this album aren't unique. Not processing.")
             return
+
         # Make sure the list of photos from the yaml is up to date with
         # the photos in the directory, simply add all the new photos to
         # self.photos
@@ -336,7 +340,7 @@ class Album(object):
 
         # Overwrite the yaml file of the album
         logging.info("[%s] Saving album yaml." % self.name)
-        self.dump()
+        self.dump(modification_time=modification_time)
 
     ####################
     #                  #
