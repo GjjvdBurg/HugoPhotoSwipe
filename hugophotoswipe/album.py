@@ -202,7 +202,9 @@ class Album(object):
             for photo in self.photos:
                 fid.write("\n")
                 yaml_field_to_file(fid, photo.filename, "file", indent="- ")
-                yaml_field_to_file(fid, hash(photo), "hash", indent="  ")
+                yaml_field_to_file(
+                    fid, "sha256:" + photo.sha256sum(), "hash", indent="  "
+                )
         print("Updated album file: %s" % self._album_file)
 
     @classmethod
@@ -294,7 +296,7 @@ class Album(object):
         for photo in self.photos:
             hsh = next(
                 (
-                    h["hash"]
+                    str(h["hash"]).split(":")[-1]
                     for h in self.hashes
                     if h["file"] == photo.filename
                 ),

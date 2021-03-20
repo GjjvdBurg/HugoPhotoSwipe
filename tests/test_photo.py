@@ -172,14 +172,9 @@ class PhotoTestCase(unittest.TestCase):
                 self.assertEqual(img.height, size[1])
                 img.close()
 
-    @unittest.skip("TODO - Migrate photo hashing approach")
-    def test_hash(self):
-        # Our photo.__hash__ function, for some reason, returns a giant integer
-        # that is subsequently truncated by Python to a size that is
-        # system-dependent. That's not great, so we should switch to something
-        # like BLAKE2b where we can set a reasonable digest size and just write
-        # that to the album.yml file
-        pass
+    def test_sha256sum(self):
+        self.assertEqual(self.photo.sha256sum(),
+"c2fdf14c548a08032fd06e6036197fc7e9c262e6d06fac40e54ec5dd2ce6912f")
 
 
 if __name__ == "__main__":

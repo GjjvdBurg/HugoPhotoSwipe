@@ -309,6 +309,16 @@ class Photo(object):
 
         return nwidth, nheight
 
+    def sha256sum(self):
+        blocksize = 65536
+        hasher = hashlib.sha256()
+        with open(self.original_path, "rb") as fp:
+            buf = fp.read(blocksize)
+            while buf:
+                hasher.update(buf)
+                buf = fp.read(blocksize)
+        return hasher.hexdigest()
+
     @property
     def clean_name(self):
         """ The name of the image without extension and spaces """
@@ -412,14 +422,7 @@ class Photo(object):
         return s
 
     def __hash__(self):
-        blocksize = 65536
-        hasher = hashlib.sha256()
-        with open(self.original_path, "rb") as fid:
-            buf = fid.read(blocksize)
-            while len(buf) > 0:
-                hasher.update(buf)
-                buf = fid.read(blocksize)
-        return int(float.fromhex(hasher.hexdigest()))
+        return int(float.fromhex(self.sha256sum()))
 
     def __lt__(self, other):
         return self.original_path < other.original_path
