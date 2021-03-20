@@ -248,7 +248,7 @@ class Album(object):
         for photo in all_photos:
             if photo.name is None:
                 print("No name defined for photo %r. Using filename." % photo)
-                continue
+                photo.name = os.path.basename(photo.original_path)
             album.photos.append(photo)
         return album
 
