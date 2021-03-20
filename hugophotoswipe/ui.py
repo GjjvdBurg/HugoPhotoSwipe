@@ -15,8 +15,9 @@ import argparse
 import logging
 
 from . import __version__
+from .config import SETTINGS_FILENAME
+from .config import settings
 from .hugophotoswipe import HugoPhotoSwipe
-from .conf import settings, SETTINGS_FILENAME
 
 
 def main():

@@ -17,7 +17,7 @@ import yaml
 
 from tqdm import tqdm
 
-from .conf import settings
+from .config import settings
 from .photo import Photo
 from .utils import yaml_field_to_file, modtime, question_yes_no
 

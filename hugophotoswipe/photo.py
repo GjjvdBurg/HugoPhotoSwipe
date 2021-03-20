@@ -23,7 +23,7 @@ from textwrap import wrap
 from textwrap import indent
 from subprocess import check_output
 
-from .conf import settings
+from .config import settings
 from .utils import cached_property
 
 

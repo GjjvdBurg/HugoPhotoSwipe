@@ -11,8 +11,8 @@ import unittest
 from PIL import Image
 
 from hugophotoswipe.album import Album
+from hugophotoswipe.config import settings
 from hugophotoswipe.photo import Photo
-from hugophotoswipe.conf import settings
 
 from _constants import TEST_ALBUM_MARKDOWN_1
 from _constants import TEST_ALBUM_MARKDOWN_2

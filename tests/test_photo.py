@@ -10,8 +10,8 @@ import unittest
 
 from PIL import Image
 
+from hugophotoswipe.config import settings
 from hugophotoswipe.photo import Photo
-from hugophotoswipe.conf import settings
 
 
 class PhotoTestCase(unittest.TestCase):

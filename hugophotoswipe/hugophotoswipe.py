@@ -17,7 +17,7 @@ import os
 import six
 
 from .album import Album
-from .conf import settings
+from .config import settings
 from .utils import modtime
 
 
