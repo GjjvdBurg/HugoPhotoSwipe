@@ -20,15 +20,12 @@ def modtime():
     return nowstr
 
 
-def yaml_field_to_file(fid, data, field, indent="", force_string=False):
+def yaml_field_to_file(fp, data, field, indent="", force_string=False):
     """ Handy function for writing pretty yaml """
-    if data is None:
-        fid.write("%s%s:\n" % (indent, field))
-    else:
-        if force_string:
-            fid.write('%s%s: "%s"\n' % (indent, field, data))
-        else:
-            fid.write("%s%s: %s\n" % (indent, field, data))
+    if data is None or not data.strip():
+        return fp.write("%s%s:\n" % (indent, field))
+    fmt = "%s%s: \"%s\"\n" if force_string else "%s%s: %s\n"
+    fp.write(fmt % (indent, field, data))
 
 
 def question_yes_no(question, default=True):
