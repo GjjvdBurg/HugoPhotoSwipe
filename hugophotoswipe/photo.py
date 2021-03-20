@@ -107,6 +107,7 @@ class Photo(object):
     def free(self):
         """Manually clean up the cached image"""
         if hasattr(self, "_original_img") and self._original_img:
+            self._original_img.close()
             del self._original_img
         self._original_img = None
 
