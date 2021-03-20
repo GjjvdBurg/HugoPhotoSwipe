@@ -17,7 +17,8 @@ import os
 import smartcrop
 import tempfile
 
-from PIL import Image, ExifTags
+from PIL import Image
+from PIL import ExifTags
 from functools import total_ordering
 from textwrap import wrap
 from textwrap import indent

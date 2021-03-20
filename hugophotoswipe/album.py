@@ -19,7 +19,9 @@ from tqdm import tqdm
 
 from .config import settings
 from .photo import Photo
-from .utils import yaml_field_to_file, modtime, question_yes_no
+from .utils import modtime
+from .utils import question_yes_no
+from .utils import yaml_field_to_file
 
 
 class Album(object):
