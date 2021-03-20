@@ -6,7 +6,6 @@ Unit tests for the Album class
 import os
 import shutil
 import tempfile
-import time
 import unittest
 
 from PIL import Image
@@ -173,12 +172,12 @@ class AlbumTestCase(unittest.TestCase):
             "large": [
                 "dog_1_1600x1066.jpg",
                 "dog_2_1600x1067.jpg",
-                "dog-3_1600x1068.jpg",
+                "dog-3_1600x1040.jpg",
             ],
             "small": [
                 "dog_1_800x533.jpg",
                 "dog_2_800x533.jpg",
-                "dog-3_800x534.jpg",
+                "dog-3_800x520.jpg",
             ],
             "thumb": [
                 "dog_1_256x256.jpg",
@@ -248,13 +247,13 @@ class AlbumTestCase(unittest.TestCase):
             "large": [
                 "dog_1_1600x1066.jpg",
                 "dog_2_1600x1067.jpg",
-                "dog-3_1600x1068.jpg",
+                "dog-3_1600x1040.jpg",
                 "cat-1_1600x1068.jpg",
             ],
             "small": [
                 "dog_1_800x533.jpg",
                 "dog_2_800x533.jpg",
-                "dog-3_800x534.jpg",
+                "dog-3_800x520.jpg",
                 "cat-1_800x534.jpg",
             ],
             "thumb": [
@@ -293,12 +292,12 @@ class AlbumTestCase(unittest.TestCase):
             "large": [
                 "dog_1_1600x1066.jpg",
                 "dog_2_1600x1067.jpg",
-                "dog-3_1600x1068.jpg",
+                "dog-3_1600x1040.jpg",
             ],
             "small": [
                 "dog_1_800x533.jpg",
                 "dog_2_800x533.jpg",
-                "dog-3_800x534.jpg",
+                "dog-3_800x520.jpg",
             ],
             "thumb": [
                 "dog_1_256x256.jpg",
