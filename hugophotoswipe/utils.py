@@ -32,22 +32,19 @@ def yaml_field_to_file(fp, data, field, indent="", force_string=False):
 
 def question_yes_no(question, default=True):
     """ Ask a yes/no question from the user and be persistent """
-    if default:
-        extension = "[Y/n/q]"
-    else:
-        extension = "[y/N/q]"
+    extension = "[Y/n/q]" if default else "[y/N/q]"
     while True:
         user_input = input("%s %s " % (question, extension))
         if user_input == "q":
-            raise SystemExit
+            raise SystemExit(0)
+
         if user_input.lower() in ["y", "yes"]:
             return True
         elif user_input.lower() in ["n", "no"]:
             return False
         elif not user_input:
             return default
-        else:
-            print("No valid input, please try again.")
+        print("No valid input, please try again.")
 
 
 class cached_property(object):
