@@ -275,10 +275,9 @@ class AlbumTestCase(unittest.TestCase):
         self._make_test_album(self._album_dir)
         album = Album.load(self._album_dir)
         album.update(modification_time="2021-03-20T16:41:06+00:00")
+        cat1 = os.path.join(self._here, "data", "cats", "cat-1.jpg")
         dog1 = os.path.join(self._album_dir, "photos", "dog-1.jpg")
-        img = Image.open(dog1)
-        img = img.resize((2100, 1400))
-        img.save(dog1)
+        shutil.copy(cat1, dog1)
         album.update(modification_time="2021-03-20T16:41:06+00:00")
 
         # Check markdown and album files exist
