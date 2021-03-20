@@ -32,7 +32,7 @@ class PhotoTestCase(unittest.TestCase):
         shutil.rmtree(self._tmpdir)
 
     def test_resize_dims(self):
-        """ [Photo]: Test resize dimensions """
+        """Test resize dimensions """
 
         # testing all possible modes
         pairs = [

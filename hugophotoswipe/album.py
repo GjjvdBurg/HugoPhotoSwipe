@@ -218,6 +218,7 @@ class Album(object):
         else:
             print("Skipping non-album directory: %s" % album_dir)
             return None
+
         album = cls(**data)
         album.cover_path = os.path.join(
             settings.output_dir, album.name, settings.cover_filename
@@ -226,12 +227,15 @@ class Album(object):
         all_photos = []
         for p in album.photos:
             photo_path = os.path.join(album_dir, settings.photo_dir, p["file"])
-            caption = "" if p["caption"] is None else p["caption"].strip()
+            caption = (
+                "" if p.get("caption", None) is None else p["caption"].strip()
+            )
+            alt = "" if p.get("alt", None) is None else p["alt"].strip()
             photo = Photo(
                 album_name=album.name,
                 original_path=photo_path,
                 name=p["name"],
-                alt=p["alt"],
+                alt=alt,
                 caption=caption,
                 copyright=album.copyright,
             )
@@ -258,13 +262,13 @@ class Album(object):
         missing = [f for f in os.listdir(photo_dir) if not f in photo_files]
         missing.sort()
         for f in missing:
-            pho = Photo(
+            photo = Photo(
                 album_name=self.name,
                 original_path=os.path.join(photo_dir, f),
                 name=f,
                 copyright=self.copyright,
             )
-            self.photos.append(pho)
+            self.photos.append(photo)
         logging.info(
             "[%s] Found %i photos from yaml and photos dir"
             % (self.name, len(self.photos))
@@ -319,7 +323,7 @@ class Album(object):
         if to_process:
             iterator = (
                 iter(to_process)
-                if settings.verbose
+                if not settings.verbose
                 else tqdm(to_process, desc="Progress")
             )
             for photo in iterator:

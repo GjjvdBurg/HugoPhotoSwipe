@@ -18,7 +18,7 @@ import six
 
 from .album import Album
 from .conf import settings
-from .utils import mkdirs, modtime
+from .utils import modtime
 
 
 class HugoPhotoSwipe(object):
@@ -42,9 +42,9 @@ class HugoPhotoSwipe(object):
             print("Can't create album with this name, it exists already.")
             raise SystemExit
         logging.info("Creating album directory")
-        mkdirs(album_dir)
+        os.makedirs(album_dir, exist_ok=True)
         logging.info("Creating album photos directory")
-        mkdirs(os.path.join(album_dir, settings.photo_dir))
+        os.makedirs(os.path.join(album_dir, settings.photo_dir), exist_ok=True)
         album = Album(album_dir=album_dir, creation_time=modtime())
         logging.info("Saving album yaml")
         album.dump()

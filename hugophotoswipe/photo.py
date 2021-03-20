@@ -378,6 +378,7 @@ class Photo(object):
         thumb_dim = "%ix%i" % self.resize_dims("thumb")
         caption = "" if self.caption is None else self.caption.strip()
         copyright = "" if self.copyright is None else self.copyright.strip()
+        alt = "" if self.alt is None else self.alt.strip()
         shortcode = (
             '{{{{< photo href="{large}" largeDim="{large_dim}" '
             'smallUrl="{small}" smallDim="{small_dim}" alt="{alt}" '
@@ -391,7 +392,7 @@ class Photo(object):
             small_dim=small_dim,
             thumb=thumb_path,
             thumb_dim=thumb_dim,
-            alt=self.alt,
+            alt=alt,
             caption=caption,
             copyright=copyright,
         )
