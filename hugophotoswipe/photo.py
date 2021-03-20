@@ -67,7 +67,7 @@ class Photo(object):
     @property
     def original_image(self):
         """ Open original image and if needed rotate it according to EXIF """
-        if self._original_img:
+        if not self._original_img is None:
             return self._original_img
 
         img = self._load_original_image()
@@ -103,6 +103,12 @@ class Photo(object):
 
         # fallback for unhandled rotation tags
         return img
+
+    def free(self):
+        """Manually clean up the cached image"""
+        if hasattr(self, "_original_img") and self._original_img:
+            del self._original_img
+        self._original_img = None
 
     def has_sizes(self):
         """ Check if all necessary sizes exist on disk """
@@ -422,5 +428,4 @@ class Photo(object):
         return self.__key() == other.__key()
 
     def __del__(self):
-        if self._original_img:
-            self._original_img.close()
+        self.free()
