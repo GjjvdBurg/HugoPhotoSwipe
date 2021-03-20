@@ -8,8 +8,6 @@ import shutil
 import tempfile
 import unittest
 
-from PIL import Image
-
 from hugophotoswipe.album import Album
 from hugophotoswipe.config import settings
 from hugophotoswipe.photo import Photo
@@ -26,8 +24,6 @@ from _constants import TEST_ALBUM_YAML_4
 
 class AlbumTestCase(unittest.TestCase):
     def setUp(self):
-        self.maxDiff = None # DEBUGGING
-
         self._here = os.path.dirname(os.path.realpath(__file__))
         self._tmpdir = tempfile.mkdtemp(prefix="hps_album_")
         self._album_dir = os.path.join(self._tmpdir, "dogs")
