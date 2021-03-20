@@ -14,9 +14,10 @@ License: GPL v3.
 
 """
 
+import logging
 import os
-import yaml
 import warnings
+import yaml
 
 from . import __version__
 from .utils import yaml_field_to_file
@@ -61,44 +62,6 @@ class Settings(object):
     def __init__(self, **entries):
         self.__dict__.update(DEFAULTS)
 
-        if "dim_thumbnail" in entries:
-            warnings.warn(
-                "The 'dim_thumbnail' option has been replaced by "
-                "the 'dim_max_thumb' option in version 0.0.7. Your "
-                "hugophotoswipe.yml file will be updated.",
-                DeprecationWarning,
-            )
-            entries["dim_max_thumb"] = entries["dim_thumbnail"]
-            del entries["dim_thumbnail"]
-        if "dim_coverimage" in entries:
-            warnings.warn(
-                "The 'dim_coverimage' option has been replaced by "
-                "the 'dim_max_cover' option in version 0.0.7. Your "
-                "hugophotoswipe.yml file will be updated.",
-                DeprecationWarning,
-            )
-            entries["dim_max_cover"] = entries["dim_coverimage"]
-            del entries["dim_coverimage"]
-
-        # remove deprecated square options
-        square_options = ["square_thumbnails", "square_coverimage"]
-        square_dim_opts = {
-            "square_thumbnails": "dim_max_thumb",
-            "square_coverimage": "dim_max_cover",
-        }
-        for opt in square_options:
-            if opt in entries:
-                warnings.warn(
-                    "The '%s' option has been removed "
-                    "because of the new size syntax of version 0.0.15. Your "
-                    "hugophotoswipe.yml file will be updated." % opt,
-                    DeprecationWarning,
-                )
-                if entries[opt]:
-                    dim = entries[square_dim_opts[opt]]
-                    entries[square_dim_opts[opt]] = "%ix%i" % (dim, dim)
-                del entries[opt]
-
         # ensure dim_max is always string
         for key in entries:
             if key.startswith("dim_max_"):
@@ -106,37 +69,38 @@ class Settings(object):
 
         self.__dict__.update(entries)
 
-    def dump(self, dirname=None):
+    def dump(self, dirname=None, settings_filename=None):
         """ Write settings to yaml file """
-        dirname = "" if dirname is None else dirname
-        pth = os.path.join(dirname, SETTINGS_FILENAME)
-        with open(pth, "w") as fid:
-            fid.write("---\n")
+        if settings_filename is None:
+            dirname = "" if dirname is None else dirname
+            settings_filename = os.path.join(dirname, SETTINGS_FILENAME)
+        with open(settings_filename, "w") as fp:
+            fp.write("---\n")
             for key in sorted(self.__dict__.keys()):
                 if key in DONT_DUMP:
                     continue
-                yaml_field_to_file(fid, getattr(self, key), key)
+                yaml_field_to_file(fp, getattr(self, key), key)
 
     def validate(self):
         """ Check settings for consistency """
         prefix = "Error in settings file: "
         if self.markdown_dir is None:
-            print(prefix + "markdown_dir can't be empty")
+            logging.error(prefix + "markdown_dir can't be empty")
             return False
         if self.output_dir is None:
-            print(prefix + "output_dir can't be empty")
+            logging.error(prefix + "output_dir can't be empty")
             return False
         if self.use_smartcrop_js and self.smartcrop_js_path is None:
-            print(prefix + "smartcrop.js requested but path not set")
+            logging.error(prefix + "smartcrop.js requested but path not set")
             return False
         return True
 
 
-def load_settings():
+def load_settings(settings_filename=SETTINGS_FILENAME):
     data = {}
-    if os.path.exists(SETTINGS_FILENAME):
-        with open(SETTINGS_FILENAME, "r") as fid:
-            data = yaml.safe_load(fid)
+    if os.path.exists(settings_filename):
+        with open(settings_filename, "r") as fp:
+            data = yaml.safe_load(fp)
     return Settings(**data)
 
 
