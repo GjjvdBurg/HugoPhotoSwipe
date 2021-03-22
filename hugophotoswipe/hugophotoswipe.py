@@ -11,7 +11,6 @@ License: GPL v3.
 
 """
 
-
 import logging
 import os
 
@@ -34,14 +33,18 @@ class HugoPhotoSwipe(object):
         """ Create new album """
         if name is None:
             name = input("Please provide a name for the new album: ")
+
         album_dir = name.strip().rstrip("/").replace(" ", "_")
         if os.path.exists(album_dir):
             print("Can't create album with this name, it exists already.")
-            raise SystemExit
+            raise SystemExit(1)
+
         logging.info("Creating album directory")
         os.makedirs(album_dir, exist_ok=True)
+
         logging.info("Creating album photos directory")
         os.makedirs(os.path.join(album_dir, settings.photo_dir), exist_ok=True)
+
         album = Album(album_dir=album_dir, creation_time=modtime())
         logging.info("Saving album yaml")
         album.dump()
