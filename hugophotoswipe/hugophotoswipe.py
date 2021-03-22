@@ -51,34 +51,40 @@ class HugoPhotoSwipe(object):
 
     def update(self, name=None):
         """ Update all markdown and resizes for each album """
-        if name is None:
-            for album in self._albums:
-                print("Updating album: %s" % album.name)
-                album.update()
-            print("All albums updated.")
-        else:
-            name = name.strip("/")
-            album = next((a for a in self._albums if a.name == name), None)
-            if album is None:
-                print("Couldn't find album with name %s. Stopping." % name)
-                return
+        self.update_all() if name is None else self.update_single(name)
+
+    def update_all(self):
+        for album in self._albums:
+            print("Updating album: %s" % album.name)
             album.update()
-            print("Album %s updated." % album.name)
+        print("All albums updated.")
+
+    def update_single(self, name):
+        name = name.strip("/")
+        album = next((a for a in self._albums if a.name == name), None)
+        if album is None:
+            print("Couldn't find album with name %s. Stopping." % name)
+            raise SystemExit(1)
+        album.update()
+        print("Album %s updated." % album.name)
 
     def clean(self, name=None):
         """ Clean up all markdown and resizes for each album """
-        if name is None:
-            for album in self._albums:
-                album.clean()
-            print("All albums cleaned.")
-        else:
-            name = name.strip("/")
-            album = next((a for a in self._albums if a.name == name), None)
-            if album is None:
-                print("Couldn't find album with name %s. Stopping." % name)
-                return
+        self.clean_all() if name is None else self.clean_single(name)
+
+    def clean_all(self):
+        for album in self._albums:
             album.clean()
-            print("Album %s cleaned." % album.name)
+        print("All albums cleaned.")
+
+    def clean_single(self, name):
+        name = name.strip("/")
+        album = next((a for a in self._albums if a.name == name), None)
+        if album is None:
+            print("Couldn't find album with name %s. Stopping." % name)
+            raise SystemExit(1)
+        album.clean()
+        print("Album %s cleaned." % album.name)
 
     ####################
     #                  #
