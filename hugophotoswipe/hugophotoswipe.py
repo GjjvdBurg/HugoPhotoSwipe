@@ -22,9 +22,7 @@ from .utils import modtime
 
 class HugoPhotoSwipe(object):
     def __init__(self, albums=None):
-        self._albums = albums
-        if self._albums is None:
-            self._albums = self._load_albums()
+        self._albums = self._load_albums() if albums is None else albums
 
     ################
     #              #
