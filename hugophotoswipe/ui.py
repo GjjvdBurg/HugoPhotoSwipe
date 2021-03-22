@@ -13,6 +13,7 @@ License: GPL v3.
 
 import argparse
 import logging
+import os
 
 from . import __version__
 from .config import SETTINGS_FILENAME
@@ -29,6 +30,13 @@ def main():
         settings.dump(".")
         print("Created settings file: %s" % SETTINGS_FILENAME)
         return
+
+    if not os.path.exists(SETTINGS_FILENAME):
+        print(
+            "Can't find %s, please run `hps init` to create it"
+            % SETTINGS_FILENAME
+        )
+        raise SystemExit(1)
 
     if not settings.validate():
         return
