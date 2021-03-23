@@ -52,6 +52,9 @@ test: venv ## Run unit tests in virtual environment
 test_direct: ## Run unit tests without virtual environment (typically for CI)
 	pip install .[tests] && python -m unittest discover -v ./tests
 
+cover: venv
+	source $(VENV_DIR)/bin/activate && green -a -r -s 1 -vv ./tests
+
 
 #######################
 # Virtual environment #
