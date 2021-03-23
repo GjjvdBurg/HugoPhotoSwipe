@@ -1,5 +1,6 @@
 # HugoPhotoSwipe
 
+[![build](https://github.com/GjjvdBurg/HugoPhotoSwipe/actions/workflows/build.yml/badge.svg)](https://github.com/GjjvdBurg/HugoPhotoSwipe/actions/workflows/build.yml)
 [![PyPI version](https://badge.fury.io/py/hugophotoswipe.svg)](https://pypi.org/project/hugophotoswipe)
 [![Downloads](https://pepy.tech/badge/hugophotoswipe)](https://pepy.tech/project/hugophotoswipe)
 
