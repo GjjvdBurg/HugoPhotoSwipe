@@ -146,3 +146,5 @@ If you find a problem or want to suggest a feature, please let me know by
 opening an issue on GitHub. Don't hesitate, you're helping to make this 
 project better! If you prefer email, you can contact me at ``gertjanvandenburg 
 at gmail dot com``.
+
+[![BuyMeACoffee](https://img.shields.io/badge/%E2%98%95-buymeacoffee-ffdd00)](https://www.buymeacoffee.com/GjjvdBurg)
