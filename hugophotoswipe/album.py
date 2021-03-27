@@ -10,8 +10,6 @@ License: GPL v3.
 
 """
 
-from __future__ import print_function
-
 import logging
 import os
 import shutil
@@ -19,9 +17,11 @@ import yaml
 
 from tqdm import tqdm
 
-from .conf import settings
+from .config import settings
 from .photo import Photo
-from .utils import yaml_field_to_file, modtime, question_yes_no, mkdirs
+from .utils import modtime
+from .utils import question_yes_no
+from .utils import yaml_field_to_file
 
 
 class Album(object):
@@ -73,8 +73,8 @@ class Album(object):
     @property
     def markdown_file(self):
         """ Path of the markdown file """
-        md_dir = os.path.realpath(settings.markdown_dir)
-        mkdirs(md_dir)
+        md_dir = os.path.abspath(settings.markdown_dir)
+        os.makedirs(md_dir, exist_ok=True)
         return os.path.join(md_dir, self.name + ".md")
 
     @property
@@ -89,10 +89,12 @@ class Album(object):
     #              #
     ################
 
-    def clean(self):
-        """ Clean up the processed images and the markdown file
+    def clean(self, force=False):
+        """Clean up the processed images and the markdown file
 
         Ask the user for confirmation and only remove if it exists
+
+        If ``force = True``, don't ask for confirmation.
         """
         output_dir = os.path.join(settings.output_dir, self.name)
         have_md = os.path.exists(self.markdown_file)
@@ -106,7 +108,7 @@ class Album(object):
         q += ". Is this okay?"
         if (not have_md) and (not have_out):
             return
-        if not question_yes_no(q):
+        if not force and not question_yes_no(q):
             return
 
         if have_md:
@@ -160,7 +162,7 @@ class Album(object):
             fid.write("\n".join(txt))
         print("Written markdown file: %s" % self.markdown_file)
 
-    def dump(self):
+    def dump(self, modification_time=None):
         """ Save the album configuration to a YAML file """
         if self._album_file is None:
             raise ValueError("Album file is not defined.")
@@ -184,8 +186,9 @@ class Album(object):
             yaml_field_to_file(
                 fid, self.creation_time, "creation_time", force_string=True
             )
+            modification_time = modification_time or modtime()
             yaml_field_to_file(
-                fid, modtime(), "modification_time", force_string=True
+                fid, modification_time, "modification_time", force_string=True
             )
 
             fid.write("\n")
@@ -204,7 +207,9 @@ class Album(object):
             for photo in self.photos:
                 fid.write("\n")
                 yaml_field_to_file(fid, photo.filename, "file", indent="- ")
-                yaml_field_to_file(fid, hash(photo), "hash", indent="  ")
+                yaml_field_to_file(
+                    fid, "sha256:" + photo.sha256sum(), "hash", indent="  "
+                )
         print("Updated album file: %s" % self._album_file)
 
     @classmethod
@@ -216,8 +221,9 @@ class Album(object):
             with open(album_file, "r") as fid:
                 data.update(yaml.safe_load(fid))
         else:
-            print("Skipping non-album directory: %s" % album_dir)
+            logging.warning("Skipping non-album directory: %s" % album_dir)
             return None
+
         album = cls(**data)
         album.cover_path = os.path.join(
             settings.output_dir, album.name, settings.cover_filename
@@ -226,12 +232,15 @@ class Album(object):
         all_photos = []
         for p in album.photos:
             photo_path = os.path.join(album_dir, settings.photo_dir, p["file"])
-            caption = "" if p["caption"] is None else p["caption"].strip()
+            caption = (
+                "" if p.get("caption", None) is None else p["caption"].strip()
+            )
+            alt = "" if p.get("alt", None) is None else p["alt"].strip()
             photo = Photo(
                 album_name=album.name,
                 original_path=photo_path,
                 name=p["name"],
-                alt=p["alt"],
+                alt=alt,
                 caption=caption,
                 copyright=album.copyright,
             )
@@ -240,16 +249,21 @@ class Album(object):
         album.photos = []
         for photo in all_photos:
             if photo.name is None:
-                print("No name defined for photo %r. Using filename." % photo)
-                continue
+                logging.warning(
+                    "No name defined for photo %r. Using filename." % photo
+                )
+                photo.name = os.path.basename(photo.original_path)
             album.photos.append(photo)
         return album
 
-    def update(self):
+    def update(self, modification_time=None):
         """ Update the processed images and the markdown file """
         if not self.names_unique:
-            print("Photo names for this album aren't unique. Not processing.")
+            logging.error(
+                "Photo names for this album aren't unique. Not processing."
+            )
             return
+
         # Make sure the list of photos from the yaml is up to date with
         # the photos in the directory, simply add all the new photos to
         # self.photos
@@ -258,13 +272,13 @@ class Album(object):
         missing = [f for f in os.listdir(photo_dir) if not f in photo_files]
         missing.sort()
         for f in missing:
-            pho = Photo(
+            photo = Photo(
                 album_name=self.name,
                 original_path=os.path.join(photo_dir, f),
                 name=f,
                 copyright=self.copyright,
             )
-            self.photos.append(pho)
+            self.photos.append(photo)
         logging.info(
             "[%s] Found %i photos from yaml and photos dir"
             % (self.name, len(self.photos))
@@ -296,7 +310,7 @@ class Album(object):
         for photo in self.photos:
             hsh = next(
                 (
-                    h["hash"]
+                    str(h["hash"]).split(":")[-1]
                     for h in self.hashes
                     if h["file"] == photo.filename
                 ),
@@ -305,10 +319,12 @@ class Album(object):
             photo_hashes[photo] = hsh
 
         to_process = []
-        for p in self.photos:
-            if not (p.has_sizes() and (hash(p) == photo_hashes[p])):
-                to_process.append(p)
-                del p.original_image
+        for photo in self.photos:
+            if not photo.has_sizes():
+                to_process.append(photo)
+            elif not photo.sha256sum() == photo_hashes[photo]:
+                to_process.append(photo)
+            photo.free()
 
         logging.info(
             "[%s] There are %i photos to process."
@@ -317,12 +333,12 @@ class Album(object):
         if to_process:
             iterator = (
                 iter(to_process)
-                if settings.verbose
+                if not settings.verbose
                 else tqdm(to_process, desc="Progress")
             )
             for photo in iterator:
                 photo.create_sizes()
-                del photo.original_image
+                photo.free()
 
         # Overwrite the markdown file
         logging.info("[%s] Writing markdown file." % self.name)
@@ -330,7 +346,7 @@ class Album(object):
 
         # Overwrite the yaml file of the album
         logging.info("[%s] Saving album yaml." % self.name)
-        self.dump()
+        self.dump(modification_time=modification_time)
 
     ####################
     #                  #

@@ -11,22 +11,17 @@ License: GPL v3.
 
 """
 
-from __future__ import print_function
-
 import logging
 import os
-import six
 
 from .album import Album
-from .conf import settings
-from .utils import mkdirs, modtime
+from .config import settings
+from .utils import modtime
 
 
 class HugoPhotoSwipe(object):
     def __init__(self, albums=None):
-        self._albums = albums
-        if self._albums is None:
-            self._albums = self._load_albums()
+        self._albums = self._load_albums() if albums is None else albums
 
     ################
     #              #
@@ -37,15 +32,19 @@ class HugoPhotoSwipe(object):
     def new(self, name=None):
         """ Create new album """
         if name is None:
-            name = six.moves.input("Please provide a name for the new album: ")
+            name = input("Please provide a name for the new album: ")
+
         album_dir = name.strip().rstrip("/").replace(" ", "_")
         if os.path.exists(album_dir):
             print("Can't create album with this name, it exists already.")
-            raise SystemExit
+            raise SystemExit(1)
+
         logging.info("Creating album directory")
-        mkdirs(album_dir)
+        os.makedirs(album_dir, exist_ok=True)
+
         logging.info("Creating album photos directory")
-        mkdirs(os.path.join(album_dir, settings.photo_dir))
+        os.makedirs(os.path.join(album_dir, settings.photo_dir), exist_ok=True)
+
         album = Album(album_dir=album_dir, creation_time=modtime())
         logging.info("Saving album yaml")
         album.dump()
@@ -53,34 +52,40 @@ class HugoPhotoSwipe(object):
 
     def update(self, name=None):
         """ Update all markdown and resizes for each album """
-        if name is None:
-            for album in self._albums:
-                print("Updating album: %s" % album.name)
-                album.update()
-            print("All albums updated.")
-        else:
-            name = name.strip("/")
-            album = next((a for a in self._albums if a.name == name), None)
-            if album is None:
-                print("Couldn't find album with name %s. Stopping." % name)
-                return
+        self.update_all() if name is None else self.update_single(name)
+
+    def update_all(self):
+        for album in self._albums:
+            print("Updating album: %s" % album.name)
             album.update()
-            print("Album %s updated." % album.name)
+        print("All albums updated.")
+
+    def update_single(self, name):
+        name = name.strip("/")
+        album = next((a for a in self._albums if a.name == name), None)
+        if album is None:
+            print("Couldn't find album with name %s. Stopping." % name)
+            raise SystemExit(1)
+        album.update()
+        print("Album %s updated." % album.name)
 
     def clean(self, name=None):
         """ Clean up all markdown and resizes for each album """
-        if name is None:
-            for album in self._albums:
-                album.clean()
-            print("All albums cleaned.")
-        else:
-            name = name.strip("/")
-            album = next((a for a in self._albums if a.name == name), None)
-            if album is None:
-                print("Couldn't find album with name %s. Stopping." % name)
-                return
+        self.clean_all() if name is None else self.clean_single(name)
+
+    def clean_all(self):
+        for album in self._albums:
             album.clean()
-            print("Album %s cleaned." % album.name)
+        print("All albums cleaned.")
+
+    def clean_single(self, name):
+        name = name.strip("/")
+        album = next((a for a in self._albums if a.name == name), None)
+        if album is None:
+            print("Couldn't find album with name %s. Stopping." % name)
+            raise SystemExit(1)
+        album.clean()
+        print("Album %s cleaned." % album.name)
 
     ####################
     #                  #

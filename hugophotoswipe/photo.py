@@ -11,41 +11,21 @@ License: GPL v3.
 
 """
 
-from __future__ import print_function, division
-
 import hashlib
 import logging
 import os
 import smartcrop
 import tempfile
 
-from PIL import Image, ExifTags
+from PIL import Image
+from PIL import ExifTags
 from functools import total_ordering
 from textwrap import wrap
+from textwrap import indent
 from subprocess import check_output
 
-from .conf import settings
-from .utils import mkdirs, cached_property
-
-import six
-
-if six.PY2:
-
-    def indent(text, prefix, predicate=None):
-        if predicate is None:
-
-            def predicate(line):
-                return line.strip()
-
-        def prefixed_lines():
-            for line in text.splitlines(True):
-                yield (prefix + line if predicate(line) else line)
-
-        return "".join(prefixed_lines())
-
-
-else:
-    from textwrap import indent
+from .config import settings
+from .utils import cached_property
 
 
 @total_ordering
@@ -76,15 +56,26 @@ class Photo(object):
         self.copyright = copyright
         self.cover_path = None
 
+        # caching
+        self._original_img = None
+
     ################
     #              #
     # User methods #
     #              #
     ################
 
-    @cached_property
+    @property
     def original_image(self):
         """ Open original image and if needed rotate it according to EXIF """
+        if not self._original_img is None:
+            return self._original_img
+
+        img = self._load_original_image()
+        self._original_img = img
+        return self._original_img
+
+    def _load_original_image(self):
         img = Image.open(self.original_path)
         # if there is no exif data, simply return the image
         exif = img._getexif()
@@ -113,6 +104,13 @@ class Photo(object):
 
         # fallback for unhandled rotation tags
         return img
+
+    def free(self):
+        """Manually clean up the cached image"""
+        if hasattr(self, "_original_img") and self._original_img:
+            self._original_img.close()
+            del self._original_img
+        self._original_img = None
 
     def has_sizes(self):
         """ Check if all necessary sizes exist on disk """
@@ -175,9 +173,8 @@ class Photo(object):
     def create_thumb(self, mode=None, pth=None):
         """ Create the image thumbnail """
         if settings.use_smartcrop_js:
-            self.create_thumb_js(mode=mode, pth=pth)
-        else:
-            self.create_thumb_py(mode=mode, pth=pth)
+            return self.create_thumb_js(mode=mode, pth=pth)
+        return self.create_thumb_py(mode=mode, pth=pth)
 
     def create_thumb_py(self, mode=None, pth=None):
         """ Create the thumbnail using SmartCrop.py """
@@ -314,6 +311,16 @@ class Photo(object):
 
         return nwidth, nheight
 
+    def sha256sum(self):
+        blocksize = 65536
+        hasher = hashlib.sha256()
+        with open(self.original_path, "rb") as fp:
+            buf = fp.read(blocksize)
+            while buf:
+                hasher.update(buf)
+                buf = fp.read(blocksize)
+        return hasher.hexdigest()
+
     @property
     def clean_name(self):
         """ The name of the image without extension and spaces """
@@ -322,50 +329,23 @@ class Photo(object):
 
     @cached_property
     def large_path(self):
-        """ The path of the large resized image """
-        thedir = os.path.join(
-            settings.output_dir, self.album_name, settings.dirname_large
-        )
-        mkdirs(thedir)
-        width, height = self.resize_dims("large")
-        fname = "%s_%ix%i.%s" % (
-            self.clean_name,
-            width,
-            height,
-            settings.output_format,
-        )
-        return os.path.join(thedir, fname)
+        return self._get_path("large")
 
     @cached_property
     def small_path(self):
-        """ The path of the small resized image """
-        thedir = os.path.join(
-            settings.output_dir, self.album_name, settings.dirname_small
-        )
-        mkdirs(thedir)
-        width, height = self.resize_dims("small")
-        fname = "%s_%ix%i.%s" % (
-            self.clean_name,
-            width,
-            height,
-            settings.output_format,
-        )
-        return os.path.join(thedir, fname)
+        return self._get_path("small")
 
     @cached_property
     def thumb_path(self):
-        """ The path of the thumbnail image """
-        thedir = os.path.join(
-            settings.output_dir, self.album_name, settings.dirname_thumb
-        )
-        mkdirs(thedir)
-        width, height = self.resize_dims("thumb")
-        fname = "%s_%ix%i.%s" % (
-            self.clean_name,
-            width,
-            height,
-            settings.output_format,
-        )
+        return self._get_path("thumb")
+
+    def _get_path(self, mode):
+        mode_dir = getattr(settings, f"dirname_{mode}")
+        thedir = os.path.join(settings.output_dir, self.album_name, mode_dir)
+        os.makedirs(thedir, exist_ok=True)
+        width, height = self.resize_dims(mode)
+        ext = settings.output_format
+        fname = f"{self.clean_name}_{width:d}x{height:d}.{ext}"
         return os.path.join(thedir, fname)
 
     @property
@@ -400,6 +380,7 @@ class Photo(object):
         thumb_dim = "%ix%i" % self.resize_dims("thumb")
         caption = "" if self.caption is None else self.caption.strip()
         copyright = "" if self.copyright is None else self.copyright.strip()
+        alt = "" if self.alt is None else self.alt.strip()
         shortcode = (
             '{{{{< photo href="{large}" largeDim="{large_dim}" '
             'smallUrl="{small}" smallDim="{small_dim}" alt="{alt}" '
@@ -413,7 +394,7 @@ class Photo(object):
             small_dim=small_dim,
             thumb=thumb_path,
             thumb_dim=thumb_dim,
-            alt=self.alt,
+            alt=alt,
             caption=caption,
             copyright=copyright,
         )
@@ -444,17 +425,13 @@ class Photo(object):
         return s
 
     def __hash__(self):
-        blocksize = 65536
-        hasher = hashlib.sha256()
-        with open(self.original_path, "rb") as fid:
-            buf = fid.read(blocksize)
-            while len(buf) > 0:
-                hasher.update(buf)
-                buf = fid.read(blocksize)
-        return int(float.fromhex(hasher.hexdigest()))
+        return int(float.fromhex(self.sha256sum()))
 
     def __lt__(self, other):
         return self.original_path < other.original_path
 
     def __eq__(self, other):
         return self.__key() == other.__key()
+
+    def __del__(self):
+        self.free()

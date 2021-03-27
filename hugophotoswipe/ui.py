@@ -11,14 +11,14 @@ License: GPL v3.
 
 """
 
-from __future__ import print_function
-
 import argparse
 import logging
+import os
 
 from . import __version__
+from .config import SETTINGS_FILENAME
+from .config import settings
 from .hugophotoswipe import HugoPhotoSwipe
-from .conf import settings, SETTINGS_FILENAME
 
 
 def main():
@@ -30,6 +30,13 @@ def main():
         settings.dump(".")
         print("Created settings file: %s" % SETTINGS_FILENAME)
         return
+
+    if not os.path.exists(SETTINGS_FILENAME):
+        print(
+            "Can't find %s, please run `hps init` to create it"
+            % SETTINGS_FILENAME
+        )
+        raise SystemExit(1)
 
     if not settings.validate():
         return
@@ -68,10 +75,13 @@ def parse_args():
         "-f",
         "--fast",
         action="store_true",
-        help=("Fast mode " "(tries less potential crops)"),
+        help=("Fast mode (attempts fewer potential crops for thumbnails)"),
     )
     parser.add_argument(
-        "-V", "--version", action="version", version=__version__,
+        "-V",
+        "--version",
+        action="version",
+        version=__version__,
     )
     parser.add_argument(
         "command",
