@@ -1,5 +1,15 @@
 # Change Log
 
+## Version 0.3.0
+
+- Change checksum algorithm to sha256. This makes checksums in the album.yml 
+  file consistent across different platforms.
+- Properly handle photos without name defined in album.yml
+- Rename 'conf' submodule to 'config'
+- Exit cleanly if hugophotoswipe.yml is not found
+- Various improvements to the code quality
+- Added unit tests
+
 ## Version 0.2.5
 
 - Minor packaging and documentation improvements
