@@ -48,9 +48,7 @@ def wait_for_enter():
 
 def get_package_name():
     with open("./setup.py", "r") as fp:
-        nameline = next(
-            (l.strip() for l in fp if l.startswith("NAME = ")), None
-        )
+        nameline = next((l.strip() for l in fp if l.startswith("NAME = ")), None)
         return nameline.split("=")[-1].strip().strip('"')
 
 
@@ -107,14 +105,14 @@ class UpdateChangelog(Step):
 
 class UpdateReadme(Step):
     def action(self, context):
-        self.instruct(f"Update readme if necessary")
+        self.instruct("Update readme if necessary")
         self.print_run("vi README.md")
 
 
 class RunTests(Step):
     def action(self, context):
         self.instruct("Run the unit tests")
-        self.print_run("make test")
+        self.do_cmd("make test")
 
 
 class BumpVersionPackage(Step):
@@ -202,23 +200,17 @@ class PushToGitHub(Step):
 
 class WaitForTravis(Step):
     def action(self, context):
-        self.instruct(
-            "Wait for Travis to complete and verify that its successful"
-        )
+        self.instruct("Wait for Travis to complete and verify that its successful")
 
 
 class WaitForAppVeyor(Step):
     def action(self, context):
-        self.instruct(
-            "Wait for AppVeyor to complete and verify that its successful"
-        )
+        self.instruct("Wait for AppVeyor to complete and verify that its successful")
 
 
 class WaitForRTD(Step):
     def action(self, context):
-        self.instruct(
-            "Wait for ReadTheDocs to complete and verify that its successful"
-        )
+        self.instruct("Wait for ReadTheDocs to complete and verify that its successful")
 
 
 def main(target=None):
