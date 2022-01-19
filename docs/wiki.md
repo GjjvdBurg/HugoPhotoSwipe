@@ -1,6 +1,6 @@
 # HugoPhotoSwipe Walkthrough
 
-In this guide we will set up a simple website using Hugo and HugoPhotoSwipe.  
+In this guide we will set up a simple website using Hugo and HugoPhotoSwipe. 
 We will first set up our entire Hugo configuration and then set up the 
 HugoPhotoSwipe configuration. You can find the complete source code for the 
 final result of this tutorial 
@@ -65,12 +65,12 @@ $ cd hps_example
 The directory in which you are now should contain:
 
 ```
-archetypes/  
-config.toml  
-content/  
-data/  
-layouts/  
-static/  
+archetypes/
+config.toml
+content/
+data/
+layouts/
+static/
 themes/
 ```
 
@@ -246,12 +246,12 @@ the directory structure of ``static`` is now like this:
 
 ```
 ├── css
-│   ├── default-skin
-│   │   ├── default-skin.css
-│   │   ├── default-skin.png
-│   │   ├── default-skin.svg
-│   │   └── preloader.gif
-│   └── photoswipe.css
+│   ├── default-skin
+│   │   ├── default-skin.css
+│   │   ├── default-skin.png
+│   │   ├── default-skin.svg
+│   │   └── preloader.gif
+│   └── photoswipe.css
 └── js
     ├── photoswipe-ui-default.js
     ├── photoswipe-ui-default.min.js
@@ -638,8 +638,7 @@ Notice two details that might trip you up:
 
 2. The ``animal`` field is preceeded by **3** spaces. Using a ``tab`` (``\t``) or no spaces with result in an error at the next step.
 
-Once 
-you're done editing, go back to the directory with the ``hugophotoswipe.yml`` 
+Once you're done editing, go back to the directory with the ``hugophotoswipe.yml`` 
 file, and type
 
 ```
