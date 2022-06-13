@@ -11,56 +11,33 @@ License: GPL v3.
 
 """
 
-from __future__ import print_function, division
-
 import hashlib
 import logging
 import os
-import pprint
-
 import smartcrop
 import tempfile
 
-from PIL.TiffImagePlugin import IFDRational
-from PIL import Image, UnidentifiedImageError
-from PIL.ExifTags import TAGS, GPSTAGS
+from PIL import Image
+from PIL import ExifTags
 from functools import total_ordering
 from textwrap import wrap
+from textwrap import indent
 from subprocess import check_output
 
-from .conf import settings
-from .utils import mkdirs, cached_property
-
-import six
-
-if six.PY2:
-
-    def indent(text, prefix, predicate=None):
-        if predicate is None:
-            def predicate(line):
-                return line.strip()
-
-        def prefixed_lines():
-            for line in text.splitlines(True):
-                yield (prefix + line if predicate(line) else line)
-
-        return "".join(prefixed_lines())
-
-
-else:
-    from textwrap import indent
+from .config import settings
+from .utils import cached_property
 
 
 @total_ordering
 class Photo(object):
     def __init__(
-            self,
-            album_name=None,
-            original_path=None,
-            name=None,
-            alt=None,
-            caption=None,
-            copyright=None,
+        self,
+        album_name=None,
+        original_path=None,
+        name=None,
+        alt=None,
+        caption=None,
+        copyright=None,
     ):
         # album
         self.album_name = album_name
@@ -73,16 +50,14 @@ class Photo(object):
         # names
         self.name = name
         self.alt = alt
-        self._caption = caption
+        self.caption = caption
 
         # other
-        self._copyright = copyright
+        self.copyright = copyright
         self.cover_path = None
-        self._exif = None
-        self._iptc = None
 
-        # process image to ensure it's a valid image.
-        # self.original_image
+        # caching
+        self._original_img = None
 
     ################
     #              #
@@ -90,131 +65,52 @@ class Photo(object):
     #              #
     ################
 
-    @cached_property
+    @property
     def original_image(self):
         """ Open original image and if needed rotate it according to EXIF """
-        logging.info(f'Loading original image. Photo: {self.original_path}')
+        if not self._original_img is None:
+            return self._original_img
+
+        img = self._load_original_image()
+        self._original_img = img
+        return self._original_img
+
+    def _load_original_image(self):
+        img = Image.open(self.original_path)
         # if there is no exif data, simply return the image
-        exif = self.exif
-        with Image.open(self.original_path) as img:
-            if exif is None:
-                return img
-
-            # get the orientation tag code from the ExifTags dict
-            orientation = exif.get('Orientation')
-            if orientation is None:
-                print("Couldn't find orientation tag in ExifTags.TAGS")
-                return img
-
-            # if no orientation is defined in the exif, return the image
-            if not orientation in exif:
-                return img
-
-            # rotate the image according to the exif
-            if exif[orientation] == 3:
-                return img.rotate(180, expand=True)
-            elif exif[orientation] == 6:
-                return img.rotate(270, expand=True)
-            elif exif[orientation] == 8:
-                return img.rotate(90, expand=True)
-
-            # fallback for unhandled rotation tags
+        exif = img._getexif()
+        if exif is None:
             return img
 
-    @property
-    def iptc(self):
-        from iptcinfo3 import IPTCInfo, c_datasets_r
+        # get the orientation tag code from the ExifTags dict
+        orientation = next(
+            (k for k, v in ExifTags.TAGS.items() if v == "Orientation"), None
+        )
+        if orientation is None:
+            print("Couldn't find orientation tag in ExifTags.TAGS")
+            return img
 
-        if self._iptc is None:
-            if settings.iptc:
-                tags = _filter_tags(c_datasets_r.keys(),
-                                    settings.iptc.get('include'),
-                                    settings.iptc.get('exclude'))
-            else:
-                tags = c_datasets_r.keys()
+        # if no orientation is defined in the exif, return the image
+        if not orientation in exif:
+            return img
 
-            info = IPTCInfo(self.original_path)
-            iptc = {}
-            for k in tags:
-                if type(info[k]) is bytes:
-                    iptc[k] = info[k].decode('utf-8')
-                elif type(info[k]) is list:
-                    l = []
-                    for v in info[k]:
-                        l.append(v.decode('utf-8'))
-                    iptc[k] = l
-                else:
-                    iptc[k] = info[k]
-            self._iptc = iptc
+        # rotate the image according to the exif
+        if exif[orientation] == 3:
+            return img.rotate(180, expand=True)
+        elif exif[orientation] == 6:
+            return img.rotate(270, expand=True)
+        elif exif[orientation] == 8:
+            return img.rotate(90, expand=True)
 
-        return self._iptc
+        # fallback for unhandled rotation tags
+        return img
 
-    @property
-    def exif(self):
-        if self._exif is None:
-            if settings.exif:
-                tags = set(_filter_tags(TAGS.values(),
-                                        settings.exif.get('include'),
-                                        settings.exif.get('exclude')))
-                tags.add('Orientation')  # always need this for resize
-            else:
-                tags = TAGS.values()
-
-            exif_data = {}
-            # Crucial to use as with statement to avoid memory leak
-            with Image.open(self.original_path) as im:
-                exif = im.getexif()
-            for k, v in exif.items():
-                decoded = TAGS.get(k)
-                if decoded in tags and not isinstance(v, IFDRational):  # Filter complex data values
-                    exif_data[decoded] = v
-            for k, v in exif_data.pop('GPSInfo', {}).items():
-                decoded = GPSTAGS.get(k, k)
-                exif_data[decoded] = v
-            self._exif = exif_data
-            del exif
-
-        return self._exif
-
-    def _get_tag_value(self, tag):
-        assert tag is not None
-        try:
-            obj, t = tag.split('.')
-        except Exception as e:
-            logging.warning(e)
-            raise ValueError(f"Tag improperly formatted. Should be of format (exif/iptc).tag Provided: ({tag})")
-        if obj.lower() not in ['exif', 'iptc']:
-            raise ValueError(f"Tags can only reference iptc or exif data. ({tag})")
-        o = getattr(self, obj.lower(), {})
-        if o is None:
-            logging.warning(f'Tag "{tag}" specified but {obj} not loaded. Returning "".')
-            o = {}
-        return o.get(t, "")
-
-    @property
-    def caption(self):
-        if self._caption:
-            return self._caption
-        elif settings.tag_map and settings.tag_map.get('caption'):
-            return str(self._get_tag_value(settings.tag_map.get('caption')))
-        return ""
-
-    @property
-    def copyright(self):
-        if self._copyright:
-            return self._copyright
-        elif settings.tag_map and settings.tag_map.get('copyright'):
-            return str(self._get_tag_value(settings.tag_map.get('copyright')))
-        return ""
-
-    def __getattribute__(self, attr):
-        """ Allow property style access to all tags defined in settings.tag_map """
-        try:
-            return super().__getattribute__(attr)
-        except AttributeError as e:
-            if settings.tag_map and settings.tag_map.get(attr):
-                return self._get_tag_value(settings.tag_map.get(attr))
-            raise e
+    def free(self):
+        """Manually clean up the cached image"""
+        if hasattr(self, "_original_img") and self._original_img:
+            self._original_img.close()
+            del self._original_img
+        self._original_img = None
 
     def has_sizes(self):
         """ Check if all necessary sizes exist on disk """
@@ -227,7 +123,7 @@ class Photo(object):
         if not os.path.exists(self.thumb_path):
             return False
         if (not self.cover_path is None) and (
-                not os.path.exists(self.cover_path)
+            not os.path.exists(self.cover_path)
         ):
             return False
         return True
@@ -277,9 +173,8 @@ class Photo(object):
     def create_thumb(self, mode=None, pth=None):
         """ Create the image thumbnail """
         if settings.use_smartcrop_js:
-            self.create_thumb_js(mode=mode, pth=pth)
-        else:
-            self.create_thumb_py(mode=mode, pth=pth)
+            return self.create_thumb_js(mode=mode, pth=pth)
+        return self.create_thumb_py(mode=mode, pth=pth)
 
     def create_thumb_py(self, mode=None, pth=None):
         """ Create the thumbnail using SmartCrop.py """
@@ -416,29 +311,15 @@ class Photo(object):
 
         return nwidth, nheight
 
-    @staticmethod
-    def as_url(path):
-        prefix = settings.url_prefix or ""
-        return (prefix + path[len(settings.output_dir):]).replace("\\", "/")
-
-    @property
-    def properties(self):
-        d = {}
-        if settings.tag_map:
-            for k in settings.tag_map.keys():
-                logging.debug(f'Photo tag_map property: {k}: {getattr(self, k)}')
-                d.update({k: getattr(self, k)})
-        d.update({
-            'name': self.clean_name,
-            'filetype': self.extension,
-            'copyright': self.copyright,
-            'caption': self.caption,
-            'alt': self.alt,
-            'original_height': self.height,
-            'original_width': self.width,
-            'thumb_url': self.as_url(self.thumb_path),
-        })
-        return d
+    def sha256sum(self):
+        blocksize = 65536
+        hasher = hashlib.sha256()
+        with open(self.original_path, "rb") as fp:
+            buf = fp.read(blocksize)
+            while buf:
+                hasher.update(buf)
+                buf = fp.read(blocksize)
+        return hasher.hexdigest()
 
     @property
     def clean_name(self):
@@ -448,50 +329,23 @@ class Photo(object):
 
     @cached_property
     def large_path(self):
-        """ The path of the large resized image """
-        thedir = os.path.join(
-            settings.output_dir, self.album_name, settings.dirname_large
-        )
-        mkdirs(thedir)
-        width, height = self.resize_dims("large")
-        fname = "%s_%ix%i.%s" % (
-            self.clean_name,
-            width,
-            height,
-            settings.output_format,
-        )
-        return os.path.join(thedir, fname)
+        return self._get_path("large")
 
     @cached_property
     def small_path(self):
-        """ The path of the small resized image """
-        thedir = os.path.join(
-            settings.output_dir, self.album_name, settings.dirname_small
-        )
-        mkdirs(thedir)
-        width, height = self.resize_dims("small")
-        fname = "%s_%ix%i.%s" % (
-            self.clean_name,
-            width,
-            height,
-            settings.output_format,
-        )
-        return os.path.join(thedir, fname)
+        return self._get_path("small")
 
     @cached_property
     def thumb_path(self):
-        """ The path of the thumbnail image """
-        thedir = os.path.join(
-            settings.output_dir, self.album_name, settings.dirname_thumb
-        )
-        mkdirs(thedir)
-        width, height = self.resize_dims("thumb")
-        fname = "%s_%ix%i.%s" % (
-            self.clean_name,
-            width,
-            height,
-            settings.output_format,
-        )
+        return self._get_path("thumb")
+
+    def _get_path(self, mode):
+        mode_dir = getattr(settings, f"dirname_{mode}")
+        thedir = os.path.join(settings.output_dir, self.album_name, mode_dir)
+        os.makedirs(thedir, exist_ok=True)
+        width, height = self.resize_dims(mode)
+        ext = settings.output_format
+        fname = f"{self.clean_name}_{width:d}x{height:d}.{ext}"
         return os.path.join(thedir, fname)
 
     @property
@@ -516,15 +370,6 @@ class Photo(object):
     @property
     def shortcode(self):
         """ Generate the shortcode for the Markdown file """
-        def escape_string(str):
-            try:
-                if '"' in str:
-                    repl = str.replace('"', '\\\"')
-                    logging.info(f'Escaping string: {str}\n{repl}')
-                return str.replace('"', '\\\"')
-            except:
-                return str
-
         prefix = "" if settings.url_prefix is None else settings.url_prefix
         L = len(settings.output_dir)
         large_path = (prefix + self.large_path[L:]).replace("\\", "/")
@@ -535,6 +380,7 @@ class Photo(object):
         thumb_dim = "%ix%i" % self.resize_dims("thumb")
         caption = "" if self.caption is None else self.caption.strip()
         copyright = "" if self.copyright is None else self.copyright.strip()
+        alt = "" if self.alt is None else self.alt.strip()
         shortcode = (
             '{{{{< photo href="{large}" largeDim="{large_dim}" '
             'smallUrl="{small}" smallDim="{small_dim}" alt="{alt}" '
@@ -548,9 +394,9 @@ class Photo(object):
             small_dim=small_dim,
             thumb=thumb_path,
             thumb_dim=thumb_dim,
-            alt=escape_string(self.alt),
-            caption=escape_string(caption),
-            copyright=escape_string(copyright),
+            alt=alt,
+            caption=caption,
+            copyright=copyright,
         )
         return shortcode
 
@@ -579,14 +425,7 @@ class Photo(object):
         return s
 
     def __hash__(self):
-        blocksize = 65536
-        hasher = hashlib.sha256()
-        with open(self.original_path, "rb") as fid:
-            buf = fid.read(blocksize)
-            while len(buf) > 0:
-                hasher.update(buf)
-                buf = fid.read(blocksize)
-        return int(float.fromhex(hasher.hexdigest()))
+        return int(float.fromhex(self.sha256sum()))
 
     def __lt__(self, other):
         return self.original_path < other.original_path
@@ -594,8 +433,5 @@ class Photo(object):
     def __eq__(self, other):
         return self.__key() == other.__key()
 
-
-def _filter_tags(tags, include=None, exclude=None):
-    exc = lambda k: True if not exclude else k not in exclude
-    inc = lambda k: True if not include else k in include
-    return filter(exc, filter(inc, tags))
+    def __del__(self):
+        self.free()

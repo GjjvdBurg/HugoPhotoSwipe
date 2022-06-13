@@ -10,36 +10,33 @@ License: GPL v3.
 
 """
 
-from __future__ import print_function
-
 import logging
 import os
 import shutil
 import yaml
-from PIL import UnidentifiedImageError
 
 from tqdm import tqdm
 
-from .conf import settings
+from .config import settings
 from .photo import Photo
-from .utils import yaml_field_to_file, modtime, question_yes_no, mkdirs
-
-logger = logging.getLogger(__name__)
+from .utils import modtime
+from .utils import question_yes_no
+from .utils import yaml_field_to_file
 
 
 class Album(object):
     def __init__(
-            self,
-            album_dir=None,
-            title=None,
-            album_date=None,
-            properties=None,
-            copyright=None,
-            coverimage=None,
-            creation_time=None,
-            modification_time=None,
-            photos=None,
-            hashes=None,
+        self,
+        album_dir=None,
+        title=None,
+        album_date=None,
+        properties=None,
+        copyright=None,
+        coverimage=None,
+        creation_time=None,
+        modification_time=None,
+        photos=None,
+        hashes=None,
     ):
 
         self._album_dir = album_dir
@@ -76,8 +73,8 @@ class Album(object):
     @property
     def markdown_file(self):
         """ Path of the markdown file """
-        md_dir = os.path.realpath(settings.markdown_dir)
-        mkdirs(md_dir)
+        md_dir = os.path.abspath(settings.markdown_dir)
+        os.makedirs(md_dir, exist_ok=True)
         return os.path.join(md_dir, self.name + ".md")
 
     @property
@@ -86,36 +83,32 @@ class Album(object):
         pth = os.path.realpath(settings.output_dir)
         return os.path.join(pth, self.name)
 
-    @property
-    def markdown_dir(self):
-        return os.path.join(os.path.realpath(settings.markdown_dir), self.name)
-
     ################
     #              #
     # User methods #
     #              #
     ################
 
-    def clean(self):
-        """ Clean up the processed images and the markdown file
+    def clean(self, force=False):
+        """Clean up the processed images and the markdown file
 
         Ask the user for confirmation and only remove if it exists
-        """
-        have_md = os.path.exists(self.markdown_file)
-        have_md_dir = os.path.exists(self.markdown_dir)
-        have_out = os.path.exists(self.output_dir)
 
-        q = ["Going to remove: "]
+        If ``force = True``, don't ask for confirmation.
+        """
+        output_dir = os.path.join(settings.output_dir, self.name)
+        have_md = os.path.exists(self.markdown_file)
+        have_out = os.path.exists(output_dir)
+        q = "Going to remove: "
         if have_md:
-            q.append("  - (File) {}".format(self.markdown_file))
-        if have_md_dir:
-            q.append("  - (Dir) {}".format(self.markdown_dir))
+            q += self.markdown_file
         if have_out:
-            q.append("  - (Dir) {}".format(self.output_dir))
-        q.append("Is this okay?")
-        if True not in [have_md, have_md_dir, have_out]:
+            q += " and " if have_md else ""
+            q += self.output_dir
+        q += ". Is this okay?"
+        if (not have_md) and (not have_out):
             return
-        if not question_yes_no("\n".join(q)):
+        if not force and not question_yes_no(q):
             return
 
         if have_md:
@@ -124,73 +117,11 @@ class Album(object):
                 % (self.name, self.markdown_file)
             )
             os.unlink(self.markdown_file)
-        if have_md_dir:
-            logging.info(f"[{self.name}] Removing markdown directory: {self.markdown_dir}")
-            shutil.rmtree(self.markdown_dir)
         if have_out:
             logging.info(
-                "[%s] Removing images directory: %s" % (self.name, self.output_dir)
+                "[%s] Removing images directory: %s" % (self.name, output_dir)
             )
-            shutil.rmtree(self.output_dir)
-
-    def create_markdown_bundle(self):
-        """ Create a branch bundle of markdown files, one per photo with an _index.md
-
-            Output is generated in a sub folder with the *album_name*. Each photo markdown file
-            will have the photo properties in front matter and the shortcode in content.
-        """
-        album_md_template = ("---",
-                             "title: {title}",
-                             "date: {date}",
-                             "{album_properties}",
-                             "---",
-                             )
-        album_md_template = "\n".join(album_md_template)
-        photo_md_template = ("---",
-                             "{photo_properties}",
-                             "{exif_iptc}"
-                             "---",
-                             "",
-                             "{shortcode}"
-                             )
-        photo_md_template = "\n".join(photo_md_template)
-
-        if self.properties:
-            album_properties = yaml.dump(self.properties, default_flow_style=False)
-        else:
-            album_properties = ""
-        logging.debug('album_properties text:\n\t'.format(album_properties))
-
-        album_dir = os.path.join(os.path.realpath(settings.markdown_dir), self.name)
-        mkdirs(album_dir)
-
-        with open(os.path.join(album_dir, "_index.md"), "w") as f:
-            logging.debug('Writing album md file to {}'.format(os.path.join(album_dir, "_index.md")))
-            f.write(album_md_template.format(title=self.title,
-                                             cover=self.coverimage,
-                                             date=self.album_date,
-                                             album_properties=album_properties))
-        for photo in self.photos:
-            logging.info('Writing photo md file to {}'.format(os.path.join(album_dir, photo.clean_name) + ".md"))
-
-            _ = {}
-            if settings.exif.get('dump', False):
-                _.update(photo.exif)
-            if settings.iptc.get('dump', False):
-                _.update(photo.iptc)
-            exif_iptc = yaml.dump(_, default_flow_style=False) if _ and len(_) > 0 else ""
-
-            with open(os.path.join(album_dir, photo.clean_name) + ".md", "w") as f:
-                try:
-                    photo_properties = yaml.dump(photo.properties, default_flow_style=False)
-                except AttributeError:
-                    photo_properties = ""
-
-                f.write(photo_md_template.format(
-                    exif_iptc=exif_iptc,
-                    shortcode=photo.shortcode,
-                    photo_properties=photo_properties,
-                ))
+            shutil.rmtree(output_dir)
 
     def create_markdown(self):
         """ Create the markdown file, always overwrite existing """
@@ -198,8 +129,8 @@ class Album(object):
         coverpath = ""
         if not self.coverimage is None:
             coverpath = (
-                    settings.url_prefix
-                    + self.cover_path[len(settings.output_dir):]
+                settings.url_prefix
+                + self.cover_path[len(settings.output_dir) :]
             )
             # path should always be unix style for Hugo frontmatter
             coverpath = coverpath.replace("\\", "/")
@@ -231,7 +162,7 @@ class Album(object):
             fid.write("\n".join(txt))
         print("Written markdown file: %s" % self.markdown_file)
 
-    def dump(self):
+    def dump(self, modification_time=None):
         """ Save the album configuration to a YAML file """
         if self._album_file is None:
             raise ValueError("Album file is not defined.")
@@ -255,8 +186,9 @@ class Album(object):
             yaml_field_to_file(
                 fid, self.creation_time, "creation_time", force_string=True
             )
+            modification_time = modification_time or modtime()
             yaml_field_to_file(
-                fid, modtime(), "modification_time", force_string=True
+                fid, modification_time, "modification_time", force_string=True
             )
 
             fid.write("\n")
@@ -275,7 +207,9 @@ class Album(object):
             for photo in self.photos:
                 fid.write("\n")
                 yaml_field_to_file(fid, photo.filename, "file", indent="- ")
-                yaml_field_to_file(fid, hash(photo), "hash", indent="  ")
+                yaml_field_to_file(
+                    fid, "sha256:" + photo.sha256sum(), "hash", indent="  "
+                )
         print("Updated album file: %s" % self._album_file)
 
     @classmethod
@@ -287,8 +221,9 @@ class Album(object):
             with open(album_file, "r") as fid:
                 data.update(yaml.safe_load(fid))
         else:
-            logging.info("Skipping non-album directory: %s" % album_dir)
+            logging.warning("Skipping non-album directory: %s" % album_dir)
             return None
+
         album = cls(**data)
         album.cover_path = os.path.join(
             settings.output_dir, album.name, settings.cover_filename
@@ -297,64 +232,54 @@ class Album(object):
         all_photos = []
         for p in album.photos:
             photo_path = os.path.join(album_dir, settings.photo_dir, p["file"])
-            caption = "" if p["caption"] is None else p["caption"].strip()
-            try:
-                photo = Photo(
-                    album_name=album.name,
-                    original_path=photo_path,
-                    name=p["name"],
-                    alt=p["alt"],
-                    caption=caption,
-                    copyright=album.copyright,
-                )
-                all_photos.append(photo)
-            except PermissionError:
-                pass
-            # except UnidentifiedImageError:
-            #     pass
+            caption = (
+                "" if p.get("caption", None) is None else p["caption"].strip()
+            )
+            alt = "" if p.get("alt", None) is None else p["alt"].strip()
+            photo = Photo(
+                album_name=album.name,
+                original_path=photo_path,
+                name=p["name"],
+                alt=alt,
+                caption=caption,
+                copyright=album.copyright,
+            )
+            all_photos.append(photo)
 
         album.photos = []
         for photo in all_photos:
             if photo.name is None:
-                print("No name defined for photo %r. Using filename." % photo)
-                continue
+                logging.warning(
+                    "No name defined for photo %r. Using filename." % photo
+                )
+                photo.name = os.path.basename(photo.original_path)
             album.photos.append(photo)
         return album
 
-    def update(self):
+    def update(self, modification_time=None):
         """ Update the processed images and the markdown file """
-        # logger.setLevel(logging.DEBUG)
-        logger.info(f'Processing update of album. {self.name}')
         if not self.names_unique:
-            logging.warning("Photo names for this album aren't unique. Not processing.")
+            logging.error(
+                "Photo names for this album aren't unique. Not processing."
+            )
             return
+
         # Make sure the list of photos from the yaml is up to date with
         # the photos in the directory, simply add all the new photos to
         # self.photos
         photo_files = [p.filename for p in self.photos]
         photo_dir = os.path.join(self._album_dir, settings.photo_dir)
-        _, _, candidate_files = next(os.walk(photo_dir))
-        missing = [f for f in candidate_files if f not in photo_files]
+        missing = [f for f in os.listdir(photo_dir) if not f in photo_files]
         missing.sort()
         for f in missing:
-            logger.info(f'\tLoading photo file: {f}')
-            try:
-                pho = Photo(
-                    album_name=self.name,
-                    original_path=os.path.join(photo_dir, f),
-                    name=f,
-                    copyright=self.copyright,
-                )
-                _ = pho.original_image  # Force loading the image to test if it's real
-                # del _
-                # logger.debug(f'Object situation: {gc.get_objects()}')
-                # gc.collect()
-                self.photos.append(pho)
-            except PermissionError:
-                pass  # Most likely a directory instead of a file.
-            except UnidentifiedImageError:
-                pass  # Not a photo file
-        logger.info(
+            photo = Photo(
+                album_name=self.name,
+                original_path=os.path.join(photo_dir, f),
+                name=f,
+                copyright=self.copyright,
+            )
+            self.photos.append(photo)
+        logging.info(
             "[%s] Found %i photos from yaml and photos dir"
             % (self.name, len(self.photos))
         )
@@ -366,7 +291,7 @@ class Album(object):
                 to_remove.append(photo)
         for photo in to_remove:
             self.photos.remove(photo)
-        logger.info(
+        logging.info(
             "[%s] Removed %i photos that have been deleted."
             % (self.name, len(to_remove))
         )
@@ -385,7 +310,7 @@ class Album(object):
         for photo in self.photos:
             hsh = next(
                 (
-                    h["hash"]
+                    str(h["hash"]).split(":")[-1]
                     for h in self.hashes
                     if h["file"] == photo.filename
                 ),
@@ -394,9 +319,12 @@ class Album(object):
             photo_hashes[photo] = hsh
 
         to_process = []
-        for p in self.photos:
-            if not (p.has_sizes() and (hash(p) == photo_hashes[p])):
-                to_process.append(p)
+        for photo in self.photos:
+            if not photo.has_sizes():
+                to_process.append(photo)
+            elif not photo.sha256sum() == photo_hashes[photo]:
+                to_process.append(photo)
+            photo.free()
 
         logging.info(
             "[%s] There are %i photos to process."
@@ -405,23 +333,20 @@ class Album(object):
         if to_process:
             iterator = (
                 iter(to_process)
-                if settings.verbose
+                if not settings.verbose
                 else tqdm(to_process, desc="Progress")
             )
             for photo in iterator:
                 photo.create_sizes()
-                del photo.original_image
+                photo.free()
 
         # Overwrite the markdown file
         logging.info("[%s] Writing markdown file." % self.name)
-        if settings.generate_branch_bundle:
-            self.create_markdown_bundle()
-        else:
-            self.create_markdown()
+        self.create_markdown()
 
         # Overwrite the yaml file of the album
         logging.info("[%s] Saving album yaml." % self.name)
-        self.dump()
+        self.dump(modification_time=modification_time)
 
     ####################
     #                  #

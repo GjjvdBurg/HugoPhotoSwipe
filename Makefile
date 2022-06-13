@@ -46,8 +46,15 @@ dist: ## Make Python source distribution
 
 .PHONY: test
 
-test: venv ## Run nosetests using the default nosetests command
-	source $(VENV_DIR)/bin/activate && green -a -vv ./tests
+test: venv ## Run unit tests in virtual environment
+	source $(VENV_DIR)/bin/activate && green -a -s 1 -vv ./tests
+
+test_direct: ## Run unit tests without virtual environment (typically for CI)
+	pip install .[tests] && python -m unittest discover -v ./tests
+
+cover: venv
+	source $(VENV_DIR)/bin/activate && green -a -r -s 1 -vv ./tests
+
 
 #######################
 # Virtual environment #
@@ -55,16 +62,19 @@ test: venv ## Run nosetests using the default nosetests command
 
 .PHONY: venv
 
-venv: $(VENV_DIR)/bin/activate
+venv: $(VENV_DIR)/bin/activate ## Create a virtual environment
 
 $(VENV_DIR)/bin/activate:
-	test -d $(VENV_DIR) || virtualenv $(VENV_DIR)
+	test -d $(VENV_DIR) || python -m venv $(VENV_DIR)
 	source $(VENV_DIR)/bin/activate && pip install -e .[dev]
 	touch $(VENV_DIR)/bin/activate
 
 ############
 # Clean up #
 ############
+
+clean_venv: ## Clean up the virtual environment
+	rm -rf $(VENV_DIR)
 
 clean: ## Clean build dist and egg directories left after install
 	rm -rf ./dist

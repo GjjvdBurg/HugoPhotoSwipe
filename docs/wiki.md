@@ -65,7 +65,13 @@ $ cd hps_example
 The directory in which you are now should contain:
 
 ```
-$ archetypes/  config.toml  content/  data/  layouts/  static/  themes/
+archetypes/
+config.toml
+content/
+data/
+layouts/
+static/
+themes/
 ```
 
 This directory will be called the **Hugo root directory** below.
@@ -216,8 +222,7 @@ with the content:
 </html>
 ```
 
-Again, if you have an existing theme or layout, you may have to incorporate this
-into an existing file.
+Again, if you have an existing theme or layout, you may have to incorporate this into an existing file.
 
 ### Adding static files
 
@@ -231,15 +236,27 @@ directory. To keep things organized, we create two subdirectories in the
 $ mkdir static/{css,js}
 ```
 
-Next, copy all the CSS files from PhotoSwipe into the ``static/css`` folder.
-This should then contain a ``photoswipe.css`` file and a ``default-skin`` 
-folder. 
+In the PhotoSwipe folder you downloaded at the begining, go into the ``dist/`` directory. 
 
-Then, copy all the PhotoSwipe Javascript files that you downloaded before and 
-place them in the ``static/js`` directory. This folder should now contain:
+Into the ``static/css/`` folder in your hugo site, copy ``photoswipe.css`` and the entire folder ``default-skin/`` 
+
+Into the ``static/js/`` folder in your hugo site, copy all the Javascript (``.js``) files. 
+
+the directory structure of ``static`` is now like this:
 
 ```
-$ photoswipe.js  photoswipe.min.js  photoswipe-ui-default.js photoswipe-ui-default.min.js
+├── css
+│   ├── default-skin
+│   │   ├── default-skin.css
+│   │   ├── default-skin.png
+│   │   ├── default-skin.svg
+│   │   └── preloader.gif
+│   └── photoswipe.css
+└── js
+    ├── photoswipe-ui-default.js
+    ├── photoswipe-ui-default.min.js
+    ├── photoswipe.js
+    └── photoswipe.min.js
 ```
 
 Finally, in the ``static/js`` folder create a file ``pswp_gallery.js``, with 
@@ -557,23 +574,23 @@ familiar with the YAML fileformat, you might want to quickly check out the
 [Wikipedia article about it](https://en.wikipedia.org/wiki/YAML). In the 
 ``hugophotoswipe.yml`` file, we first change the ``markdown_dir`` variable:
 
-```
-$ markdown_dir: ../../content/galleries/
+```yaml
+markdown_dir: ../../content/galleries/
 ```
 
 The ``markdown_dir`` variable is the place where Hugo expects to find the 
 Markdown files to process. Next, we change the ``output_dir`` 
 variable:
 
-```
-$ output_dir: ../../static/pics/
+```yaml
+output_dir: ../../static/pics/
 ```
 
 This tells HugoPhotoSwipe where to place the resized photos that it will 
 create. Finally, we change the ``url_prefix`` variable to:
 
-```
-$ url_prefix: /pics/
+```yaml
+url_prefix: /pics/
 ```
 
 The ``url_prefix`` variable will be used to make sure the links on your site 
@@ -615,8 +632,13 @@ copyright:
 coverimage: pexels-photo-127028.jpeg
 ```
 
-Notice the quotes around the ``album_date`` field, these are important. Once 
-you're done editing, go back to the directory with the ``hugophotoswipe.yml`` 
+Notice two details that might trip you up:
+
+1. The quotes around the ``album_date`` field, these are important. 
+
+2. The ``animal`` field is preceeded by **3** spaces. Using a ``tab`` (``\t``) or no spaces with result in an error at the next step.
+
+Once you're done editing, go back to the directory with the ``hugophotoswipe.yml`` 
 file, and type
 
 ```

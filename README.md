@@ -1,6 +1,8 @@
 # HugoPhotoSwipe
 
+[![build](https://github.com/GjjvdBurg/HugoPhotoSwipe/actions/workflows/build.yml/badge.svg)](https://github.com/GjjvdBurg/HugoPhotoSwipe/actions/workflows/build.yml)
 [![PyPI version](https://badge.fury.io/py/hugophotoswipe.svg)](https://pypi.org/project/hugophotoswipe)
+[![Downloads](https://pepy.tech/badge/hugophotoswipe)](https://pepy.tech/project/hugophotoswipe)
 
 HugoPhotoSwipe is a command line application to easily create and manage
 [PhotoSwipe](http://photoswipe.com/) albums when using the
@@ -144,3 +146,5 @@ If you find a problem or want to suggest a feature, please let me know by
 opening an issue on GitHub. Don't hesitate, you're helping to make this 
 project better! If you prefer email, you can contact me at ``gertjanvandenburg 
 at gmail dot com``.
+
+[![BuyMeACoffee](https://img.shields.io/badge/%E2%98%95-buymeacoffee-ffdd00)](https://www.buymeacoffee.com/GjjvdBurg)
