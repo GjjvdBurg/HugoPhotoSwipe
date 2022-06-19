@@ -147,10 +147,7 @@ class Photo(object):
             if type(info[k]) is bytes:
                 iptc[k] = info[k].decode('utf-8')
             elif type(info[k]) is list:
-                l = []
-                for v in info[k]:
-                    l.append(v.decode('utf-8'))
-                iptc[k] = l
+                iptc[k] = [v.decode('utf-8') for v in info[k]]
             else:
                 iptc[k] = info[k]
         self._iptc = iptc
