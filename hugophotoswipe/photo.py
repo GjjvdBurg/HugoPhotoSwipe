@@ -168,15 +168,14 @@ class Photo(object):
         assert tag is not None
         try:
             obj, t = tag.split('.')
-        except Exception as e:
-            logging.warning(e)
+        except ValueError as e:
             raise ValueError(
-                f"Tag improperly formatted. "
-                f"Tag should be of format iptc.<tag_name> or exif.<tag_name>. Provided: ({tag})")
+                f"Tag(s) improperly formatted. "
+                f"Tags should be of format iptc.<tag_name> or exif.<tag_name>. Provided: ({tag})")
         if obj.lower() not in ['exif', 'iptc']:
             raise ValueError(
                 f"Tags can only reference iptc or exif data. "
-                f"Tag should be of format: iptc.<tag_name> or exif.<tag_name>. Provided: ({tag})")
+                f"Tags should be of format: iptc.<tag_name> or exif.<tag_name>. Provided: ({tag})")
         o = getattr(self, obj.lower(), {})
         if o is None:
             logging.warning(f'Tag "{tag}" specified but {obj} not loaded. Returning "".')

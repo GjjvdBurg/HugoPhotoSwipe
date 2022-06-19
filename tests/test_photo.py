@@ -238,6 +238,25 @@ class PhotoTagsTestCase(unittest.TestCase):
         self.assertEqual("Free (do whatever you want) high-resolution photos. unsplash.com/license",
                          self.photo.copyright)
 
+    def test_incorrect_tags_namespace_value_error(self):
+        # Configure Tag Map to point copyright to a filled-out EXIF tag.
+        setattr(settings, "tag_map", {"copyright": "bad.Copyright"})
+        with self.assertRaises(ValueError) as cm:
+            _ = self.photo.copyright
+        self.assertEqual(cm.exception.args[0],
+                         "Tags can only reference iptc or exif data. "
+                         "Tags should be of format: iptc.<tag_name> or exif.<tag_name>. Provided: (bad.Copyright)")
+
+    def test_incorrect_tags_format_value_error(self):
+        # Configure Tag Map to point copyright to a filled-out EXIF tag.
+        setattr(settings, "tag_map", {"copyright": "exif_Copyright"})
+        with self.assertRaises(ValueError) as cm:
+            _ = self.photo.copyright
+        # print(cm.exception)
+        self.assertEqual(cm.exception.args[0],
+                         f"Tag(s) improperly formatted. "
+                         f"Tags should be of format iptc.<tag_name> or exif.<tag_name>. Provided: (exif_Copyright)")
+
 
 if __name__ == "__main__":
     unittest.main()
