@@ -90,11 +90,7 @@ class Photo(object):
         # get the orientation tag code from the ExifTags dict
         orientation = exif.get('Orientation')
         if orientation is None:
-            print("Couldn't find orientation tag in ExifTags.TAGS")
-            return img
-
-        # if no orientation is defined in the exif, return the image
-        if not orientation in exif:
+            # if no orientation is defined in the exif, return the image
             return img
 
         # rotate the image according to the exif
