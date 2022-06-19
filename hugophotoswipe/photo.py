@@ -81,8 +81,10 @@ class Photo(object):
 
     def _load_original_image(self):
         img = Image.open(self.original_path)
-        # if there is no exif data, simply return the image
         self._load_exif(img)
+        self._load_iptc()
+
+        # if there is no exif data, simply return the image
         exif = self._exif
         if exif is None:
             return img
@@ -104,6 +106,13 @@ class Photo(object):
         # fallback for unhandled rotation tags
         return img
 
+    def free(self):
+        """Manually clean up the cached image"""
+        if hasattr(self, "_original_img") and self._original_img:
+            self._original_img.close()
+            del self._original_img
+        self._original_img = None
+
     def _load_exif(self, image):
         if settings.exif:
             tags = set(_filter_tags(TAGS.values(),
@@ -124,44 +133,39 @@ class Photo(object):
             exif_data[decoded] = v
         self._exif = exif_data
 
-    def free(self):
-        """Manually clean up the cached image"""
-        if hasattr(self, "_original_img") and self._original_img:
-            self._original_img.close()
-            del self._original_img
-        self._original_img = None
+    def _load_iptc(self):
+        if settings.iptc:
+            tags = _filter_tags(iptc3.c_datasets_r.keys(),
+                                settings.iptc.get('include'),
+                                settings.iptc.get('exclude'))
+        else:
+            tags = iptc3.c_datasets_r.keys()
 
-    @property
-    def iptc(self):
-        if self._iptc is None:
-            if settings.iptc:
-                tags = _filter_tags(iptc3.c_datasets_r.keys(),
-                                    settings.iptc.get('include'),
-                                    settings.iptc.get('exclude'))
+        info = iptc3.IPTCInfo(self.original_path)
+        iptc = {}
+        for k in tags:
+            if type(info[k]) is bytes:
+                iptc[k] = info[k].decode('utf-8')
+            elif type(info[k]) is list:
+                l = []
+                for v in info[k]:
+                    l.append(v.decode('utf-8'))
+                iptc[k] = l
             else:
-                tags = iptc3.c_datasets_r.keys()
-
-            info = iptc3.IPTCInfo(self.original_path)
-            iptc = {}
-            for k in tags:
-                if type(info[k]) is bytes:
-                    iptc[k] = info[k].decode('utf-8')
-                elif type(info[k]) is list:
-                    l = []
-                    for v in info[k]:
-                        l.append(v.decode('utf-8'))
-                    iptc[k] = l
-                else:
-                    iptc[k] = info[k]
-            self._iptc = iptc
-
-        return self._iptc
+                iptc[k] = info[k]
+        self._iptc = iptc
 
     @property
     def exif(self):
         if not self._exif:
             _ = self.original_image  # Trigger loading image and exif data
         return self._exif
+
+    @property
+    def iptc(self):
+        if not self._iptc:
+            _ = self.original_image
+        return self._iptc
 
     def _get_tag_value(self, tag):
         assert tag is not None
