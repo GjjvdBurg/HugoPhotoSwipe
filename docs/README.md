@@ -69,8 +69,8 @@ edit it there if you wish. Because the album file is given priority, your change
 not be overridden, even after an update. Copyright is not yet used as this is currently 
 an album-level property.
 
-The format of the option is: `property: iptc/exif.tag`. Tag may include spaces. A full
-list of tags can be found here:
+The format of the option is: `<property_name>: iptc.<tag_name>` or `<property_name>:exif.<tag_name>` 
+(for example: `copyright: exif.Artist`). Tag may include spaces. A full list of tags can be found here:
 * [IPTC tags](https://github.com/jamesacampbell/iptcinfo3/blob/a9cea6cb1981e4ad29cf317d44419e4fd45c2170/iptcinfo3.py#L445)
 * [EXIF tags](https://github.com/python-pillow/Pillow/blob/master/src/PIL/ExifTags.py)
 

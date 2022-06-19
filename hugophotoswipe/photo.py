@@ -33,13 +33,13 @@ from .utils import cached_property
 @total_ordering
 class Photo(object):
     def __init__(
-        self,
-        album_name=None,
-        original_path=None,
-        name=None,
-        alt=None,
-        caption=None,
-        copyright=None,
+            self,
+            album_name=None,
+            original_path=None,
+            name=None,
+            alt=None,
+            caption=None,
+            copyright=None,
     ):
         # album
         self.album_name = album_name
@@ -173,9 +173,13 @@ class Photo(object):
             obj, t = tag.split('.')
         except Exception as e:
             logging.warning(e)
-            raise ValueError(f"Tag improperly formatted. Should be of format (exif/iptc).tag Provided: ({tag})")
+            raise ValueError(
+                f"Tag improperly formatted. "
+                f"Tag should be of format iptc.<tag_name> or exif.<tag_name>. Provided: ({tag})")
         if obj.lower() not in ['exif', 'iptc']:
-            raise ValueError(f"Tags can only reference iptc or exif data. ({tag})")
+            raise ValueError(
+                f"Tags can only reference iptc or exif data. "
+                f"Tag should be of format: iptc.<tag_name> or exif.<tag_name>. Provided: ({tag})")
         o = getattr(self, obj.lower(), {})
         if o is None:
             logging.warning(f'Tag "{tag}" specified but {obj} not loaded. Returning "".')
@@ -218,7 +222,7 @@ class Photo(object):
         if not os.path.exists(self.thumb_path):
             return False
         if (not self.cover_path is None) and (
-            not os.path.exists(self.cover_path)
+                not os.path.exists(self.cover_path)
         ):
             return False
         return True
@@ -536,4 +540,3 @@ def _filter_tags(tags, include=None, exclude=None):
     exc = lambda k: True if not exclude else k not in exclude
     inc = lambda k: True if not include else k in include
     return filter(exc, filter(inc, tags))
-
