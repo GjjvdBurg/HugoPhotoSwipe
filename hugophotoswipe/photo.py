@@ -198,15 +198,6 @@ class Photo(object):
             return str(self._get_tag_value(settings.tag_map.get('copyright')))
         return ""
 
-    def __getattribute__(self, attr):
-        """ Allow property style access to all tags defined in settings.tag_map """
-        try:
-            return super().__getattribute__(attr)
-        except AttributeError as e:
-            if settings.tag_map and settings.tag_map.get(attr):
-                return self._get_tag_value(settings.tag_map.get(attr))
-            raise e
-
     def has_sizes(self):
         """ Check if all necessary sizes exist on disk """
         if self.name is None:
