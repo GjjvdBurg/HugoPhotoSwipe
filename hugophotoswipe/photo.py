@@ -29,17 +29,19 @@ from subprocess import check_output
 from .config import settings
 from .utils import cached_property
 
+logging.getLogger('iptcinfo').setLevel('ERROR')  # Avoid warnings about missing / undecoded IPTC tags.
+
 
 @total_ordering
 class Photo(object):
     def __init__(
-        self,
-        album_name=None,
-        original_path=None,
-        name=None,
-        alt=None,
-        caption=None,
-        copyright=None,
+            self,
+            album_name=None,
+            original_path=None,
+            name=None,
+            alt=None,
+            caption=None,
+            copyright=None,
     ):
         # album
         self.album_name = album_name
@@ -81,8 +83,10 @@ class Photo(object):
 
     def _load_original_image(self):
         img = Image.open(self.original_path)
-        # if there is no exif data, simply return the image
         self._load_exif(img)
+        self._load_iptc()
+
+        # if there is no exif data, simply return the image
         exif = self._exif
         if exif is None:
             return img
@@ -90,11 +94,7 @@ class Photo(object):
         # get the orientation tag code from the ExifTags dict
         orientation = exif.get('Orientation')
         if orientation is None:
-            print("Couldn't find orientation tag in ExifTags.TAGS")
-            return img
-
-        # if no orientation is defined in the exif, return the image
-        if not orientation in exif:
+            # if no orientation is defined in the exif, return the image
             return img
 
         # rotate the image according to the exif
@@ -107,6 +107,13 @@ class Photo(object):
 
         # fallback for unhandled rotation tags
         return img
+
+    def free(self):
+        """Manually clean up the cached image"""
+        if hasattr(self, "_original_img") and self._original_img:
+            self._original_img.close()
+            del self._original_img
+        self._original_img = None
 
     def _load_exif(self, image):
         if settings.exif:
@@ -128,38 +135,24 @@ class Photo(object):
             exif_data[decoded] = v
         self._exif = exif_data
 
-    def free(self):
-        """Manually clean up the cached image"""
-        if hasattr(self, "_original_img") and self._original_img:
-            self._original_img.close()
-            del self._original_img
-        self._original_img = None
+    def _load_iptc(self):
+        if settings.iptc:
+            tags = _filter_tags(iptc3.c_datasets_r.keys(),
+                                settings.iptc.get('include'),
+                                settings.iptc.get('exclude'))
+        else:
+            tags = iptc3.c_datasets_r.keys()
 
-    @property
-    def iptc(self):
-        if self._iptc is None:
-            if settings.iptc:
-                tags = _filter_tags(iptc3.c_datasets_r.keys(),
-                                    settings.iptc.get('include'),
-                                    settings.iptc.get('exclude'))
+        info = iptc3.IPTCInfo(self.original_path)
+        iptc = {}
+        for k in tags:
+            if type(info[k]) is bytes:
+                iptc[k] = info[k].decode('utf-8')
+            elif type(info[k]) is list:
+                iptc[k] = [v.decode('utf-8') for v in info[k]]
             else:
-                tags = iptc3.c_datasets_r.keys()
-
-            info = iptc3.IPTCInfo(self.original_path)
-            iptc = {}
-            for k in tags:
-                if type(info[k]) is bytes:
-                    iptc[k] = info[k].decode('utf-8')
-                elif type(info[k]) is list:
-                    l = []
-                    for v in info[k]:
-                        l.append(v.decode('utf-8'))
-                    iptc[k] = l
-                else:
-                    iptc[k] = info[k]
-            self._iptc = iptc
-
-        return self._iptc
+                iptc[k] = info[k]
+        self._iptc = iptc
 
     @property
     def exif(self):
@@ -167,15 +160,24 @@ class Photo(object):
             _ = self.original_image  # Trigger loading image and exif data
         return self._exif
 
+    @property
+    def iptc(self):
+        if not self._iptc:
+            _ = self.original_image
+        return self._iptc
+
     def _get_tag_value(self, tag):
         assert tag is not None
         try:
             obj, t = tag.split('.')
-        except Exception as e:
-            logging.warning(e)
-            raise ValueError(f"Tag improperly formatted. Should be of format (exif/iptc).tag Provided: ({tag})")
+        except ValueError as e:
+            raise ValueError(
+                f"Tag(s) improperly formatted. "
+                f"Tags should be of format iptc.<tag_name> or exif.<tag_name>. Provided: ({tag})")
         if obj.lower() not in ['exif', 'iptc']:
-            raise ValueError(f"Tags can only reference iptc or exif data. ({tag})")
+            raise ValueError(
+                f"Tags can only reference iptc or exif data. "
+                f"Tags should be of format: iptc.<tag_name> or exif.<tag_name>. Provided: ({tag})")
         o = getattr(self, obj.lower(), {})
         if o is None:
             logging.warning(f'Tag "{tag}" specified but {obj} not loaded. Returning "".')
@@ -198,15 +200,6 @@ class Photo(object):
             return str(self._get_tag_value(settings.tag_map.get('copyright')))
         return ""
 
-    def __getattribute__(self, attr):
-        """ Allow property style access to all tags defined in settings.tag_map """
-        try:
-            return super().__getattribute__(attr)
-        except AttributeError as e:
-            if settings.tag_map and settings.tag_map.get(attr):
-                return self._get_tag_value(settings.tag_map.get(attr))
-            raise e
-
     def has_sizes(self):
         """ Check if all necessary sizes exist on disk """
         if self.name is None:
@@ -218,7 +211,7 @@ class Photo(object):
         if not os.path.exists(self.thumb_path):
             return False
         if (not self.cover_path is None) and (
-            not os.path.exists(self.cover_path)
+                not os.path.exists(self.cover_path)
         ):
             return False
         return True
@@ -536,4 +529,3 @@ def _filter_tags(tags, include=None, exclude=None):
     exc = lambda k: True if not exclude else k not in exclude
     inc = lambda k: True if not include else k in include
     return filter(exc, filter(inc, tags))
-
