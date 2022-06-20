@@ -104,16 +104,18 @@ class Album(object):
         have_md = os.path.exists(self.markdown_file)
         have_md_dir = os.path.exists(self.markdown_dir)
         have_out = os.path.exists(output_dir)
-        q = "Going to remove: "
+
+        q = ["Going to remove: "]
         if have_md:
-            q += self.markdown_file
+            q.append(f"- (file) Markdown: {self.markdown_file}")
+        if have_md_dir:
+            q.append(f"- (dir) Markdown: {self.markdown_dir}")
         if have_out:
-            q += " and " if have_md else ""
-            q += self.output_dir
-        q += ". Is this okay?"
-        if (not have_md) and (not have_out):
+            q.append(f"- (dir) Output: {self.output_dir}")
+        q.append("Is this okay?")
+        if (not have_md) and (not have_md_dir) and (not have_out):
             return
-        if not force and not question_yes_no(q):
+        if not force and not question_yes_no("\n".join(q)):
             return
 
         if have_md:
