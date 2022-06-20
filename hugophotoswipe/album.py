@@ -173,7 +173,7 @@ class Album(object):
         logging.debug('album_properties text:\n\t'.format(album_properties))
 
         album_dir = os.path.join(os.path.realpath(settings.markdown_dir), self.name)
-        os.makedirs(album_dir)
+        os.makedirs(album_dir, exist_ok=True)
 
         with open(os.path.join(album_dir, "_index.md"), "w") as f:
             logging.debug('Writing album md file to {}'.format(os.path.join(album_dir, "_index.md")))
