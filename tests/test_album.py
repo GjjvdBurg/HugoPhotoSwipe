@@ -465,4 +465,3 @@ class AlbumBranchOutputTestCase(unittest.TestCase):
         album.clean(force=True)
         self.assertFalse(os.path.exists(md_file))
         self.assertFalse(os.path.exists(md_dir))
-
