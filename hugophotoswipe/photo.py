@@ -98,11 +98,11 @@ class Photo(object):
             return img
 
         # rotate the image according to the exif
-        if exif[orientation] == 3:
+        if orientation == 3:
             return img.rotate(180, expand=True)
-        elif exif[orientation] == 6:
+        elif orientation == 6:
             return img.rotate(270, expand=True)
-        elif exif[orientation] == 8:
+        elif orientation == 8:
             return img.rotate(90, expand=True)
 
         # fallback for unhandled rotation tags
