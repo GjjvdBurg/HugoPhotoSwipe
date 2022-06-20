@@ -2,7 +2,6 @@
 Unit tests for the Album class
 
 """
-
 import os
 import shutil
 import tempfile
@@ -12,7 +11,7 @@ from hugophotoswipe.album import Album
 from hugophotoswipe.config import settings
 from hugophotoswipe.photo import Photo
 
-from _constants import TEST_ALBUM_MARKDOWN_1
+from _constants import TEST_ALBUM_MARKDOWN_1, TEST_ALBUM_MARKDOWN_BUNDLE_1
 from _constants import TEST_ALBUM_MARKDOWN_2
 from _constants import TEST_ALBUM_MARKDOWN_3
 from _constants import TEST_ALBUM_MARKDOWN_4
@@ -103,9 +102,9 @@ class AlbumTestCase(unittest.TestCase):
                 # Check if missing name is handled properly
                 self.assertEqual(p.name, "dog-3.jpg")
             else:
-                self.assertEqual(p.name, f"dog {i+1}")
+                self.assertEqual(p.name, f"dog {i + 1}")
             exp_path = os.path.join(
-                self._album_dir, "photos", f"dog-{i+1}.jpg"
+                self._album_dir, "photos", f"dog-{i + 1}.jpg"
             )
             self.assertEqual(p.original_path, exp_path)
             self.assertEqual(p.copyright, "copy")
@@ -307,3 +306,162 @@ class AlbumTestCase(unittest.TestCase):
                 filename = os.path.join(album_out, size, file)
                 self.assertTrue(os.path.exists(filename))
         self.assertTrue(os.path.exists(cover))
+
+
+class AlbumBranchOutputTestCase(unittest.TestCase):
+    def setUp(self):
+        self._here = os.path.dirname(os.path.realpath(__file__))
+        self._tmpdir = tempfile.mkdtemp(prefix="hps_album_")
+        self._album_dir = os.path.join(self._tmpdir, "dogs")
+
+        self._output_dir = os.path.join(self._tmpdir, "output")
+        os.makedirs(self._album_dir)
+
+        self._markdown_dir = os.path.join(self._tmpdir, "markdown")
+        os.makedirs(self._markdown_dir)
+
+        settings.__init__(**dict())
+        setattr(settings, "output_dir", self._output_dir)
+        setattr(settings, "markdown_dir", self._markdown_dir)
+        setattr(settings, "url_prefix", "/hpstest/photos")
+        setattr(settings, "generate_branch_bundle", True)
+
+    def tearDown(self):
+        shutil.rmtree(self._tmpdir)
+
+    def _make_test_album(self, album_dir):
+        album_file = os.path.join(album_dir, settings.album_file)
+        with open(album_file, "w") as fp:
+            fp.write("---\n")
+            fp.write("title: dogs\n")
+            fp.write("copyright: copy\n")
+            fp.write("coverimage: dog-1.jpg\n")
+            fp.write("\n")
+            fp.write("photos:\n")
+            fp.write("- file: dog-1.jpg\n")
+            fp.write("  name: dog 1\n")
+            fp.write("  caption: Hello\n")
+            fp.write("- file: dog-2.jpg\n")
+            fp.write("  name: dog 2\n")
+            fp.write("  caption: yes this is dog\n")
+            fp.write("- file: dog-3.jpg\n")
+            fp.write("  name:\n")
+        photos_dir = os.path.join(self._album_dir, "photos")
+        os.makedirs(photos_dir)
+
+        test_dog_dir = os.path.join(self._here, "data", "dogs")
+        test_dog_files = os.listdir(test_dog_dir)
+        test_dogs = [os.path.join(test_dog_dir, d) for d in test_dog_files]
+        for d in test_dogs:
+            shutil.copy(d, photos_dir)
+
+    def test_create_markdown_files(self):
+        self._make_test_album(self._album_dir)
+        album = Album.load(self._album_dir)
+        album.create_markdown_bundle()
+
+        # Check Output files exist
+        md_dir_out = os.path.join(self._markdown_dir, "dogs")
+        files = ["_index.md", "dog_1.md", "dog_2.md", "dog-3.md"]  # dog 3 uses filename as name is not defined.
+
+        for f in files:
+            with self.subTest(f):
+                self.assertTrue(os.path.exists(os.path.join(md_dir_out, f)))
+
+    def test_update_1(self):
+        self._make_test_album(self._album_dir)
+        album = Album.load(self._album_dir)
+        album.update(modification_time="2021-03-20T16:41:06+00:00")
+
+        # Check album file exist
+        with open(album._album_file, "r") as fp:
+            self.assertEqual(fp.read(), TEST_ALBUM_YAML_1)
+
+        # Check markdown output for accuracy
+        md_dir_out = os.path.join(self._markdown_dir, "dogs")
+        files = ["_index.md", "dog_1.md", "dog_2.md", "dog-3.md"]  # dog 3 uses filename as name is not defined.
+        for r, f in zip(TEST_ALBUM_MARKDOWN_BUNDLE_1, files):
+            with self.subTest(f):
+                with open(os.path.join(md_dir_out, f), "r") as fp:
+                    self.assertEqual(r, fp.read())
+
+        # Check Output files exist
+        album_out = os.path.join(self._output_dir, "dogs")
+        cover = os.path.join(album_out, "coverimage.jpg")
+        resized_files = {
+            "large": [
+                "dog_1_1600x1066.jpg",
+                "dog_2_1600x1067.jpg",
+                "dog-3_1600x1040.jpg",
+            ],
+            "small": [
+                "dog_1_800x533.jpg",
+                "dog_2_800x533.jpg",
+                "dog-3_800x520.jpg",
+            ],
+            "thumb": [
+                "dog_1_256x256.jpg",
+                "dog_2_256x256.jpg",
+                "dog-3_256x256.jpg",
+            ],
+        }
+        for size in resized_files:
+            for file in resized_files[size]:
+                filename = os.path.join(album_out, size, file)
+                self.assertTrue(os.path.exists(filename))
+        self.assertTrue(os.path.exists(cover))
+
+    def test_clean(self):
+        self._make_test_album(self._album_dir)
+
+        album = Album.load(self._album_dir)
+        album.update()
+
+        md = os.path.join(album.markdown_dir, "_index.md")
+        self.assertTrue(os.path.exists(md))
+        self.assertEqual(4, len(os.listdir(album.markdown_dir)))
+        out_album = os.path.join(self._output_dir, "dogs")
+        out_large = os.path.join(out_album, "large")
+        out_small = os.path.join(out_album, "small")
+        out_thumb = os.path.join(out_album, "thumb")
+        self.assertTrue(os.path.exists(out_album))
+        self.assertTrue(os.path.exists(out_large))
+        self.assertTrue(os.path.exists(out_small))
+        self.assertTrue(os.path.exists(out_thumb))
+        self.assertEqual(len(os.listdir(out_large)), 3)
+        self.assertEqual(len(os.listdir(out_small)), 3)
+        self.assertEqual(len(os.listdir(out_thumb)), 3)
+
+        album.clean(force=True)
+        self.assertFalse(os.path.exists(md))
+        self.assertFalse(os.path.exists(out_album))
+
+    def test_clean_switch_to_branch(self):
+        # ensure that files are cleaned even if user switches setting in between.
+        setattr(settings, "generate_branch_bundle", False)
+        self._make_test_album(self._album_dir)
+
+        album = Album.load(self._album_dir)
+        album.update()
+
+        md = album.markdown_file
+        self.assertTrue(os.path.exists(md))
+        setattr(settings, "generate_branch_bundle", True)
+        album.clean(force=True)
+        self.assertFalse(os.path.exists(md))
+
+    def test_clean_switch_from_branch(self):
+        # ensure that files are cleaned even if user switches setting in between.
+        self._make_test_album(self._album_dir)
+
+        album = Album.load(self._album_dir)
+        album.update()
+
+        md_dir = album.markdown_dir
+        md_file = os.path.join(md_dir, "_index.md")
+        self.assertTrue(os.path.exists(md_file))
+        self.assertEqual(4, len(os.listdir(md_dir)))
+        setattr(settings, "generate_branch_bundle", False)
+        album.clean(force=True)
+        self.assertFalse(os.path.exists(md_file))
+        self.assertFalse(os.path.exists(md_dir))

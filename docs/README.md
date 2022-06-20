@@ -24,6 +24,10 @@ The following options are available in the ``hugophotoswipe.yml`` file:
 | jpeg_progressive | False | Output progressive JPEGs |
 | jpeg_optimize | False | Optimize JPEG output |
 | jpeg_quality | 75 | JPEG quality factor |
+| tag_map | None | Dictionary map of exif/iptc tags to photo properties |
+| exif | None | List of tags to be included or excluded |
+| iptc | None | List of tags to be included or excluded |
+| generate_branch_bundle | False | [Branch bundle](https://gohugo.io/content-management/page-bundles/#branch-bundles) output instead of single album file |
 
 Naturally, the jpeg options are only applied when ``output_format`` is 
 ``jpg``.
@@ -41,6 +45,70 @@ dimension will be scaled such that the aspect ratio of the photo remains
 unchanged. When a single number is given, the *maximum* dimension of the photo 
 will be reduced to the given number, and the other dimension is chosen 
 according to the aspect ratio.
+
+EXIF/IPTC Tags
+--------------
+
+You can use the metadata embedded in the photos as a starter to fill out captions
+and copyright information. HugoPhotoSwipe will use this information when you run 
+`hps update` in the following manner:
+1. Prefer the information already specified in the album file
+2. Use the information in the metadata
+
+Using metadata requires a mapping for each field you want to be populated. Currently
+only caption and copyright are supported. In the configuration file, add the `tag_map`
+setting as follows:
+
+```yaml
+tag_map:
+  caption: exif.ImageDescription
+  copyright: exif.Artist
+```
+
+Caption will be saved to the album yaml file with the photo information. You can then
+edit it there if you wish. Because the album file is given priority, your changes will
+not be overridden, even after an update. Copyright is not yet used as this is currently 
+an album-level property.
+
+The format of the option is: `<property_name>: iptc.<tag_name>` or `<property_name>:exif.<tag_name>` 
+(for example: `copyright: exif.Artist`). Tag may include spaces. A full list of tags can be found here:
+* [IPTC tags](https://github.com/jamesacampbell/iptcinfo3/blob/a9cea6cb1981e4ad29cf317d44419e4fd45c2170/iptcinfo3.py#L445)
+* [EXIF tags](https://github.com/python-pillow/Pillow/blob/master/src/PIL/ExifTags.py)
+
+The following two configuration file options allow you more granular control over what
+metadata HugoPhotoSwipe loads from the file. The intended use is to reduce the number of
+tags that are saved. If you want to use a tag in the `tag_map`, it must included or 
+not be excluded. Specifying `include: []` will result in no data being loaded. 
+Not specifying either option will result in all tags being loaded.
+
+```yaml
+iptc:
+  include: ['tag1', 'tag2', ...]
+  exclude: ['tag1', 'tag2', ...]
+exif:
+  include: ['tag1', 'tag2', ...]
+  exclude: ['tag1', 'tag2', ...]
+```
+
+Branch Bundle Output
+--------------------
+
+This setting allows for two related goals:
+* Create a content page for each photo while maintaining the PhotoSwipe gallery
+  at album level.
+* Provide the basis for extracting additional properties such as EXIF tags
+  from the photos into front matter. This will allow you to use Hugo's taxonomy
+  capabilities to build albums based on tags, etc.
+
+The branch bundle output setting is designed for advanced users only. In its 
+present state, it will require significant rework to ensure the shortcodes 
+are applied correctly. You will need a `list.html` template that includes the
+`{{< wrap >}}` shortcode and iterates over the photos in the bundle. It will
+become significantly more useful once HugoPhotoSwipe supports extracting EXIF
+tags from the photos.
+
+Note: Enabling this setting will result in default album markdown files *not* 
+being generated as these would conflict with the branch bundle. 
 
 Shortcodes
 ==========
@@ -70,6 +138,12 @@ And in ``layouts/shortcodes/wrap.html``::
 
 The ``wrap`` shortcode is needed due to [this 
 issue](https://github.com/spf13/hugo/issues/1642) in Hugo.
+
+If you enable `generate_branch_bundle`, add ``layouts/_default/list.html``::
+
+    {{ range .Pages }}
+        {{ .Content }}
+    {{ end }}
 
 PhotoSwipe Javascript
 =====================

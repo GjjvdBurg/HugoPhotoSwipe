@@ -196,7 +196,66 @@ class PhotoTestCase(unittest.TestCase):
 
     def test_sha256sum(self):
         self.assertEqual(self.photo.sha256sum(),
-"c2fdf14c548a08032fd06e6036197fc7e9c262e6d06fac40e54ec5dd2ce6912f")
+                         "c2fdf14c548a08032fd06e6036197fc7e9c262e6d06fac40e54ec5dd2ce6912f")
+
+
+class PhotoTagsTestCase(unittest.TestCase):
+    def setUp(self):
+        here = os.path.dirname(os.path.realpath(__file__))
+        test_file = os.path.join(here, "data", "dogs", "dog-2.jpg")
+        self.photo = Photo(
+            album_name="test_album",
+            original_path=test_file,
+            name="dog_2",
+            alt="Alt text",
+            caption="caption text",
+            copyright=None,
+        )
+        self._tmpdir = tempfile.mkdtemp(prefix="hps_photo_")
+        # Reset settings after each test
+        settings.__init__(**dict())
+
+    def tearDown(self):
+        shutil.rmtree(self._tmpdir)
+
+    def test_iptc_tags_retain_default_behaviour(self):
+        setattr(settings, "tag_map", {"caption": "iptc.headline"})
+        self.assertEqual("caption text", self.photo.caption)
+
+    def test_iptc_tags_backfill(self):
+        setattr(self.photo, "_caption", None)
+        setattr(settings, "tag_map", {"caption": "iptc.headline"})
+        self.assertEqual("A photo by Andrew Branch. unsplash.com/photos/owWHkSUmCCQ", self.photo.caption)
+
+    def test_exif_tags_retain_default_behaviour(self):
+        setattr(settings, "tag_map", {"copyright": "exif.Copyright"})
+        setattr(self.photo, "_copyright", "The other dog")
+        self.assertEqual("The other dog", self.photo.copyright)
+
+    def test_exif_tags_backfill(self):
+        # Configure Tag Map to point copyright to a filled-out EXIF tag.
+        setattr(settings, "tag_map", {"copyright": "exif.Copyright"})
+        self.assertEqual("Free (do whatever you want) high-resolution photos. unsplash.com/license",
+                         self.photo.copyright)
+
+    def test_incorrect_tags_namespace_value_error(self):
+        # Configure Tag Map to point copyright to a filled-out EXIF tag.
+        setattr(settings, "tag_map", {"copyright": "bad.Copyright"})
+        with self.assertRaises(ValueError) as cm:
+            _ = self.photo.copyright
+        self.assertEqual(cm.exception.args[0],
+                         "Tags can only reference iptc or exif data. "
+                         "Tags should be of format: iptc.<tag_name> or exif.<tag_name>. Provided: (bad.Copyright)")
+
+    def test_incorrect_tags_format_value_error(self):
+        # Configure Tag Map to point copyright to a filled-out EXIF tag.
+        setattr(settings, "tag_map", {"copyright": "exif_Copyright"})
+        with self.assertRaises(ValueError) as cm:
+            _ = self.photo.copyright
+        # print(cm.exception)
+        self.assertEqual(cm.exception.args[0],
+                         f"Tag(s) improperly formatted. "
+                         f"Tags should be of format iptc.<tag_name> or exif.<tag_name>. Provided: (exif_Copyright)")
 
 
 if __name__ == "__main__":
