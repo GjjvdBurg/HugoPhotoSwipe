@@ -27,6 +27,7 @@ REQUIRED = [
     "pyyaml",
     "tqdm",
     "smartcrop",
+    "iptcinfo3",
 ]
 
 docs_require = []

@@ -32,6 +32,8 @@ class ConfigTestCase(unittest.TestCase):
             self.assertEqual(line(fp), "dirname_large: large")
             self.assertEqual(line(fp), "dirname_small: small")
             self.assertEqual(line(fp), "dirname_thumb: thumb")
+            self.assertEqual(line(fp), "exif:")
+            self.assertEqual(line(fp), "iptc:")
             self.assertEqual(line(fp), "jpeg_optimize: False")
             self.assertEqual(line(fp), "jpeg_progressive: False")
             self.assertEqual(line(fp), "jpeg_quality: 75")
@@ -40,6 +42,7 @@ class ConfigTestCase(unittest.TestCase):
             self.assertEqual(line(fp), "output_format: jpg")
             self.assertEqual(line(fp), "photo_dir: photos")
             self.assertEqual(line(fp), "smartcrop_js_path:")
+            self.assertEqual(line(fp), "tag_map:")
             self.assertEqual(line(fp), "url_prefix:")
             self.assertEqual(line(fp), "use_smartcrop_js: False")
 
@@ -65,6 +68,8 @@ class ConfigTestCase(unittest.TestCase):
             self.assertEqual(line(fp), "dirname_large: large")
             self.assertEqual(line(fp), "dirname_small: small")
             self.assertEqual(line(fp), "dirname_thumb: thumb")
+            self.assertEqual(line(fp), "exif:")
+            self.assertEqual(line(fp), "iptc:")
             self.assertEqual(line(fp), "jpeg_optimize: False")
             self.assertEqual(line(fp), "jpeg_progressive: True")
             self.assertEqual(line(fp), "jpeg_quality: 75")
@@ -73,6 +78,7 @@ class ConfigTestCase(unittest.TestCase):
             self.assertEqual(line(fp), "output_format: jpg")
             self.assertEqual(line(fp), "photo_dir: photo_files")
             self.assertEqual(line(fp), "smartcrop_js_path:")
+            self.assertEqual(line(fp), "tag_map:")
             self.assertEqual(line(fp), "url_prefix:")
             self.assertEqual(line(fp), "use_smartcrop_js: False")
 
