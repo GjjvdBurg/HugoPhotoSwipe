@@ -94,7 +94,7 @@ class Album(object):
     ################
 
     def clean(self, force=False):
-        """Clean up the processed images and the markdown file
+        """Clean up the processed images and the markdown file(s)
 
         Ask the user for confirmation and only remove if it exists
 
@@ -139,36 +139,47 @@ class Album(object):
             Output is generated in a sub folder with the *album_name*. Each photo markdown file
             will have the photo properties in front matter and the shortcode in content.
         """
-        album_md_template = ("---",
-                             "title: {title}",
-                             "date: {date}",
-                             "{album_properties}",
-                             "---",
+        album_md_template = ('+++',
+                             'title = "{title}"',
+                             'date = "{date}"',
+                             '{album_properties}',
+                             'cover = "{cover}"',
+                             '+++',
                              )
-        album_md_template = "\n".join(album_md_template)
-        photo_md_template = ("---",
-                             "{exif}",
-                             "{photo_properties}",
-                             "---",
-                             "",
-                             "{shortcode}"
+        album_md_template = '\n'.join(album_md_template)
+        photo_md_template = ('+++',
+                             '{exif}',
+                             '{photo_properties}',
+                             '+++',
+                             '',
+                             '{shortcode}'
                              )
-        photo_md_template = "\n".join(photo_md_template)
+        photo_md_template = '\n'.join(photo_md_template)
+
+        # Create the header for Hugo
+        coverpath = ""
+        if not self.coverimage is None:
+            coverpath = (
+                settings.url_prefix
+                + self.cover_path[len(settings.output_dir) :]
+            )
+            # path should always be unix style for Hugo frontmatter
+            coverpath = coverpath.replace("\\", "/")
 
         try:
-            album_properties = "\n".join(["{}: \"{}\"".format(k, v) for k, v in self.properties.items()])
+            album_properties = "\n".join(["{} = \"{}\"".format(k, v) for k, v in self.properties.items()])
         except AttributeError:
             album_properties = ""
         logging.debug('album_properties text:\n\t'.format(album_properties))
 
         album_dir = os.path.join(os.path.realpath(settings.markdown_dir), self.name)
-        mkdirs(album_dir)
+        os.makedirs(album_dir)
 
         with open(os.path.join(album_dir, "_index.md"), "w") as f:
             logging.debug('Writing album md file to {}'.format(os.path.join(album_dir, "_index.md")))
             f.write(album_md_template.format(title=self.title,
-                                             cover=self.coverimage,
-                                             date=self.album_date,
+                                             cover=coverpath,
+                                             date=self.album_date or "",
                                              album_properties=album_properties))
         for photo in self.photos:
             logging.debug('Writing photo md file to {}'.format(os.path.join(album_dir, photo.clean_name) + ".md"))
