@@ -225,3 +225,30 @@ hashes:
 - file: dog-3.jpg
   hash: sha256:bc6c7fb353d01edfbcd2f707e202d3d31150fdc3faf6f9580c36cb2e0e2a0b81
 """
+
+TEST_ALBUM_MARKDOWN_BUNDLE_1 = ["""\
++++
+title = "dogs"
+date = ""
+
+cover = "/hpstest/photos/dogs/coverimage.jpg"
++++""", """\
++++
+
+
++++
+
+{{< photo href="/hpstest/photos/dogs/large/dog_1_1600x1066.jpg" largeDim="1600x1066" smallUrl="/hpstest/photos/dogs/small/dog_1_800x533.jpg" smallDim="800x533" alt="" thumbSize="256x256" thumbUrl="/hpstest/photos/dogs/thumb/dog_1_256x256.jpg" caption="Hello" copyright="copy" >}}""", """\
++++
+
+
++++
+
+{{< photo href="/hpstest/photos/dogs/large/dog_2_1600x1067.jpg" largeDim="1600x1067" smallUrl="/hpstest/photos/dogs/small/dog_2_800x533.jpg" smallDim="800x533" alt="" thumbSize="256x256" thumbUrl="/hpstest/photos/dogs/thumb/dog_2_256x256.jpg" caption="yes this is dog" copyright="copy" >}}""", """\
++++
+
+
++++
+
+{{< photo href="/hpstest/photos/dogs/large/dog-3_1600x1040.jpg" largeDim="1600x1040" smallUrl="/hpstest/photos/dogs/small/dog-3_800x520.jpg" smallDim="800x520" alt="" thumbSize="256x256" thumbUrl="/hpstest/photos/dogs/thumb/dog-3_256x256.jpg" caption="" copyright="copy" >}}"""
+                                ]
