@@ -29,7 +29,7 @@ from subprocess import check_output
 from .config import settings
 from .utils import cached_property
 
-logging.getLogger('iptcinfo').setLevel('ERROR')  # Avoid warnings about missing / undecoded IPTC tags.
+# logging.getLogger('iptcinfo').setLevel('ERROR')  # Avoid warnings about missing / undecoded IPTC tags.
 
 
 @total_ordering
@@ -97,6 +97,7 @@ class Photo(object):
             # if no orientation is defined in the exif, return the image
             return img
 
+        logging.warning(f"Issue with orientation: ({orientation}).")
         # rotate the image according to the exif
         if orientation == 3:
             return img.rotate(180, expand=True)
