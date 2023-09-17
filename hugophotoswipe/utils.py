@@ -14,14 +14,14 @@ from datetime import timezone
 
 
 def modtime():
-    """ Get the current local time as a string in iso format """
+    """Get the current local time as a string in iso format"""
     now = datetime.now(timezone.utc).astimezone()
     nowstr = now.replace(microsecond=0).isoformat()
     return nowstr
 
 
 def yaml_field_to_file(fp, data, field, indent="", force_string=False):
-    """ Handy function for writing pretty yaml """
+    """Handy function for writing pretty yaml"""
     if data is None:
         return fp.write("%s%s:\n" % (indent, field))
     if isinstance(data, str) and len(data) == 0:
@@ -31,7 +31,7 @@ def yaml_field_to_file(fp, data, field, indent="", force_string=False):
 
 
 def question_yes_no(question, default=True):
-    """ Ask a yes/no question from the user and be persistent """
+    """Ask a yes/no question from the user and be persistent"""
     extension = "[Y/n/q]" if default else "[y/N/q]"
     while True:
         user_input = input("%s %s " % (question, extension))

@@ -20,7 +20,9 @@ class ConfigTestCase(unittest.TestCase):
         settings = Settings()
         settings.dump(settings_filename=self._tempfile)
 
-        line = lambda fp: fp.readline().strip()
+        def line(fp):
+            return fp.readline().strip()
+
         with open(self._tempfile, "r") as fp:
             self.assertEqual(line(fp), "---")
             self.assertEqual(line(fp), "album_file: album.yml")
@@ -53,7 +55,9 @@ class ConfigTestCase(unittest.TestCase):
         )
         settings.dump(settings_filename=self._tempfile)
 
-        line = lambda fp: fp.readline().strip()
+        def line(fp):
+            return fp.readline().strip()
+
         with open(self._tempfile, "r") as fp:
             self.assertEqual(line(fp), "---")
             self.assertEqual(line(fp), "album_file: album.yml")

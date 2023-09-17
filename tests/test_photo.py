@@ -34,7 +34,7 @@ class PhotoTestCase(unittest.TestCase):
         shutil.rmtree(self._tmpdir)
 
     def test_resize_dims(self):
-        """Test resize dimensions """
+        """Test resize dimensions"""
 
         # testing all possible modes
         pairs = [
@@ -195,8 +195,10 @@ class PhotoTestCase(unittest.TestCase):
                 img.close()
 
     def test_sha256sum(self):
-        self.assertEqual(self.photo.sha256sum(),
-"c2fdf14c548a08032fd06e6036197fc7e9c262e6d06fac40e54ec5dd2ce6912f")
+        self.assertEqual(
+            self.photo.sha256sum(),
+            "c2fdf14c548a08032fd06e6036197fc7e9c262e6d06fac40e54ec5dd2ce6912f",
+        )
 
 
 if __name__ == "__main__":

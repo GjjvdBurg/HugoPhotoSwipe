@@ -2,7 +2,7 @@
 
 """Class to handle operations on individual images
 
-The Photo class contains the methods to rescale individual images and to 
+The Photo class contains the methods to rescale individual images and to
 generate the shortcode for the image for the Markdown file.
 
 
@@ -14,15 +14,17 @@ License: GPL v3.
 import hashlib
 import logging
 import os
-import smartcrop
 import tempfile
 
-from PIL import Image
-from PIL import ExifTags
 from functools import total_ordering
-from textwrap import wrap
-from textwrap import indent
 from subprocess import check_output
+from textwrap import indent
+from textwrap import wrap
+
+import smartcrop
+
+from PIL import ExifTags
+from PIL import Image
 
 from .config import settings
 from .utils import cached_property
@@ -67,8 +69,8 @@ class Photo(object):
 
     @property
     def original_image(self):
-        """ Open original image and if needed rotate it according to EXIF """
-        if not self._original_img is None:
+        """Open original image and if needed rotate it according to EXIF"""
+        if self._original_img is not None:
             return self._original_img
 
         img = self._load_original_image()
@@ -91,7 +93,7 @@ class Photo(object):
             return img
 
         # if no orientation is defined in the exif, return the image
-        if not orientation in exif:
+        if orientation not in exif:
             return img
 
         # rotate the image according to the exif
@@ -113,7 +115,7 @@ class Photo(object):
         self._original_img = None
 
     def has_sizes(self):
-        """ Check if all necessary sizes exist on disk """
+        """Check if all necessary sizes exist on disk"""
         if self.name is None:
             return False
         if not os.path.exists(self.large_path):
@@ -122,14 +124,14 @@ class Photo(object):
             return False
         if not os.path.exists(self.thumb_path):
             return False
-        if (not self.cover_path is None) and (
+        if (self.cover_path is not None) and (
             not os.path.exists(self.cover_path)
         ):
             return False
         return True
 
     def create_sizes(self):
-        """ Create all necessary sizes """
+        """Create all necessary sizes"""
         if self.name is None:
             print("Skipping file: %s. No name defined." % self.filename)
             return
@@ -139,14 +141,14 @@ class Photo(object):
         self.create_rescaled("small")
         logging.info("[%s] Creating thumbnail size." % self.name)
         self.create_thumb(mode="thumb", pth=self.thumb_path)
-        if not self.cover_path is None:
+        if self.cover_path is not None:
             logging.info(
                 "[%s] Creating thumbnail for cover image." % self.name
             )
             self.create_thumb(mode="cover", pth=self.cover_path)
 
     def create_rescaled(self, mode):
-        """ Do the actual resizing of images for modes without smartcrop """
+        """Do the actual resizing of images for modes without smartcrop"""
         # get the desired dimensions
         nwidth, nheight = self.resize_dims(mode)
         logging.info(
@@ -171,13 +173,13 @@ class Photo(object):
         return pth
 
     def create_thumb(self, mode=None, pth=None):
-        """ Create the image thumbnail """
+        """Create the image thumbnail"""
         if settings.use_smartcrop_js:
             return self.create_thumb_js(mode=mode, pth=pth)
         return self.create_thumb_py(mode=mode, pth=pth)
 
     def create_thumb_py(self, mode=None, pth=None):
-        """ Create the thumbnail using SmartCrop.py """
+        """Create the thumbnail using SmartCrop.py"""
         if pth is None:
             raise ValueError("path can't be None")
 
@@ -197,7 +199,7 @@ class Photo(object):
 
         # Fix image mode if necessary
         img = self.original_image.copy()
-        if not img.mode in ["RGB", "RGBA"]:
+        if img.mode not in ["RGB", "RGBA"]:
             newimg = Image.new("RGB", img.size)
             newimg.paste(img)
             img = newimg
@@ -233,7 +235,7 @@ class Photo(object):
         return pth
 
     def create_thumb_js(self, mode=None, pth=None):
-        """ Create the thumbnail using SmartCrop.js """
+        """Create the thumbnail using SmartCrop.js"""
         if pth is None:
             raise ValueError("path can't be None")
 
@@ -266,7 +268,7 @@ class Photo(object):
         return pth
 
     def resize_dims(self, mode):
-        """ Calculate the width and height of the resized image """
+        """Calculate the width and height of the resized image"""
 
         # get the setting
         if mode == "large":
@@ -323,7 +325,7 @@ class Photo(object):
 
     @property
     def clean_name(self):
-        """ The name of the image without extension and spaces """
+        """The name of the image without extension and spaces"""
         f, ext = os.path.splitext(self.name.lower().replace(" ", "_"))
         return f
 
@@ -350,7 +352,7 @@ class Photo(object):
 
     @property
     def clean_caption(self):
-        """ Return the caption of the photo for the yaml file """
+        """Return the caption of the photo for the yaml file"""
         if self.caption:
             cap = self.caption.strip()
             cap = ">\n" + indent("\n".join(wrap(cap)), " " * 10)
@@ -359,17 +361,17 @@ class Photo(object):
 
     @property
     def filename(self):
-        """ The basename of the original path """
+        """The basename of the original path"""
         return os.path.basename(self.original_path)
 
     @property
     def extension(self):
-        """ The extension of the file """
+        """The extension of the file"""
         return os.path.splitext(self.original_path)[-1]
 
     @property
     def shortcode(self):
-        """ Generate the shortcode for the Markdown file """
+        """Generate the shortcode for the Markdown file"""
         prefix = "" if settings.url_prefix is None else settings.url_prefix
         L = len(settings.output_dir)
         large_path = (prefix + self.large_path[L:]).replace("\\", "/")
@@ -402,14 +404,14 @@ class Photo(object):
 
     @property
     def width(self):
-        """ The width of the original image """
+        """The width of the original image"""
         if self.original_image_width is None:
             self.original_image_width = self.original_image.width
         return self.original_image_width
 
     @property
     def height(self):
-        """ The height of the original image """
+        """The height of the original image"""
         if self.original_image_height is None:
             self.original_image_height = self.original_image.height
         return self.original_image_height

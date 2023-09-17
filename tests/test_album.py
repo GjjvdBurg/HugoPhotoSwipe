@@ -8,10 +8,6 @@ import shutil
 import tempfile
 import unittest
 
-from hugophotoswipe.album import Album
-from hugophotoswipe.config import settings
-from hugophotoswipe.photo import Photo
-
 from _constants import TEST_ALBUM_MARKDOWN_1
 from _constants import TEST_ALBUM_MARKDOWN_2
 from _constants import TEST_ALBUM_MARKDOWN_3
@@ -20,6 +16,10 @@ from _constants import TEST_ALBUM_YAML_1
 from _constants import TEST_ALBUM_YAML_2
 from _constants import TEST_ALBUM_YAML_3
 from _constants import TEST_ALBUM_YAML_4
+
+from hugophotoswipe.album import Album
+from hugophotoswipe.config import settings
+from hugophotoswipe.photo import Photo
 
 
 class AlbumTestCase(unittest.TestCase):

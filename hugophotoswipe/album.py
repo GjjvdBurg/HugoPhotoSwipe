@@ -2,7 +2,7 @@
 
 """Class for albums of photos
 
-The Album class has all the methods needed for updating albums, creating the 
+The Album class has all the methods needed for updating albums, creating the
 album markdown, etc.
 
 Author: Gertjan van den Burg
@@ -13,6 +13,7 @@ License: GPL v3.
 import logging
 import os
 import shutil
+
 import yaml
 
 from tqdm import tqdm
@@ -38,10 +39,9 @@ class Album(object):
         photos=None,
         hashes=None,
     ):
-
         self._album_dir = album_dir
         self._album_file = None
-        if not self._album_dir is None:
+        if self._album_dir is not None:
             self._album_file = os.path.join(album_dir, settings.album_file)
 
         self.title = title
@@ -62,7 +62,7 @@ class Album(object):
 
     @property
     def name(self):
-        """ Name of the album """
+        """Name of the album"""
         base_album_dir = os.path.basename(self._album_dir)
         return base_album_dir
 
@@ -72,14 +72,14 @@ class Album(object):
 
     @property
     def markdown_file(self):
-        """ Path of the markdown file """
+        """Path of the markdown file"""
         md_dir = os.path.abspath(settings.markdown_dir)
         os.makedirs(md_dir, exist_ok=True)
         return os.path.join(md_dir, self.name + ".md")
 
     @property
     def output_dir(self):
-        """ Base dir for the processed images """
+        """Base dir for the processed images"""
         pth = os.path.realpath(settings.output_dir)
         return os.path.join(pth, self.name)
 
@@ -124,10 +124,10 @@ class Album(object):
             shutil.rmtree(output_dir)
 
     def create_markdown(self):
-        """ Create the markdown file, always overwrite existing """
+        """Create the markdown file, always overwrite existing"""
         # Create the header for Hugo
         coverpath = ""
-        if not self.coverimage is None:
+        if self.coverimage is not None:
             coverpath = (
                 settings.url_prefix
                 + self.cover_path[len(settings.output_dir) :]
@@ -163,7 +163,7 @@ class Album(object):
         print("Written markdown file: %s" % self.markdown_file)
 
     def dump(self, modification_time=None):
-        """ Save the album configuration to a YAML file """
+        """Save the album configuration to a YAML file"""
         if self._album_file is None:
             raise ValueError("Album file is not defined.")
 
@@ -214,7 +214,7 @@ class Album(object):
 
     @classmethod
     def load(cls, album_dir):
-        """ Load an Album class from an album directory """
+        """Load an Album class from an album directory"""
         album_file = os.path.join(album_dir, settings.album_file)
         data = {"album_dir": album_dir}
         if os.path.exists(album_file):
@@ -257,7 +257,7 @@ class Album(object):
         return album
 
     def update(self, modification_time=None):
-        """ Update the processed images and the markdown file """
+        """Update the processed images and the markdown file"""
         if not self.names_unique:
             logging.error(
                 "Photo names for this album aren't unique. Not processing."
@@ -269,7 +269,7 @@ class Album(object):
         # self.photos
         photo_files = [p.filename for p in self.photos]
         photo_dir = os.path.join(self._album_dir, settings.photo_dir)
-        missing = [f for f in os.listdir(photo_dir) if not f in photo_files]
+        missing = [f for f in os.listdir(photo_dir) if f not in photo_files]
         missing.sort()
         for f in missing:
             photo = Photo(
@@ -355,7 +355,7 @@ class Album(object):
     ####################
 
     def _backup(self):
-        """ Create a backup of the album file if it exists """
+        """Create a backup of the album file if it exists"""
         if not os.path.exists(self._album_file):
             return
         backupfile = self._album_file + ".bak"

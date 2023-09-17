@@ -4,7 +4,7 @@
 """
 Do-nothing script for making a release
 
-This idea comes from here: 
+This idea comes from here:
 https://blog.danslimmon.com/2019/07/15/do-nothing-scripting-the-key-to-gradual-automation/
 
 Author: Gertjan van den Burg
@@ -12,10 +12,11 @@ Date: 2019-07-23
 
 """
 
-import colorama
 import os
 import sys
 import tempfile
+
+import colorama
 
 
 def colored(msg, color=None, style=None):
@@ -48,7 +49,9 @@ def wait_for_enter():
 
 def get_package_name():
     with open("./setup.py", "r") as fp:
-        nameline = next((l.strip() for l in fp if l.startswith("NAME = ")), None)
+        nameline = next(
+            (line.strip() for line in fp if line.startswith("NAME = ")), None
+        )
         return nameline.split("=")[-1].strip().strip('"')
 
 
@@ -117,7 +120,7 @@ class RunTests(Step):
 
 class BumpVersionPackage(Step):
     def action(self, context):
-        self.instruct(f"Update __version__.py with new version")
+        self.instruct("Update __version__.py with new version")
         self.do_cmd(f"vi {context['pkgname']}/__version__.py")
 
     def post(self, context):
@@ -200,17 +203,23 @@ class PushToGitHub(Step):
 
 class WaitForTravis(Step):
     def action(self, context):
-        self.instruct("Wait for Travis to complete and verify that its successful")
+        self.instruct(
+            "Wait for Travis to complete and verify that its successful"
+        )
 
 
 class WaitForAppVeyor(Step):
     def action(self, context):
-        self.instruct("Wait for AppVeyor to complete and verify that its successful")
+        self.instruct(
+            "Wait for AppVeyor to complete and verify that its successful"
+        )
 
 
 class WaitForRTD(Step):
     def action(self, context):
-        self.instruct("Wait for ReadTheDocs to complete and verify that its successful")
+        self.instruct(
+            "Wait for ReadTheDocs to complete and verify that its successful"
+        )
 
 
 def main(target=None):

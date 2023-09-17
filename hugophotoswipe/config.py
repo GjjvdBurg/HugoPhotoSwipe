@@ -2,11 +2,11 @@
 
 """Handle settings for HugoPhotoSwipe
 
-HugoPhotoSwipe uses a settings file for the configuration set by the user. This 
-configuration is loaded/initialized here as a ``settings`` object and is used 
-throughout the program. 
+HugoPhotoSwipe uses a settings file for the configuration set by the user. This
+configuration is loaded/initialized here as a ``settings`` object and is used
+throughout the program.
 
-Flags to the ``hps`` executable are saved as settings as well, but are not 
+Flags to the ``hps`` executable are saved as settings as well, but are not
 dumped to the yaml file because they are runtime options.
 
 Author: Gertjan van den Burg
@@ -17,6 +17,7 @@ License: GPL v3.
 import logging
 import os
 import warnings
+
 import yaml
 
 from . import __version__
@@ -70,7 +71,7 @@ class Settings(object):
         self.__dict__.update(entries)
 
     def dump(self, dirname=None, settings_filename=None):
-        """ Write settings to yaml file """
+        """Write settings to yaml file"""
         if settings_filename is None:
             dirname = "" if dirname is None else dirname
             settings_filename = os.path.join(dirname, SETTINGS_FILENAME)
@@ -82,7 +83,7 @@ class Settings(object):
                 yaml_field_to_file(fp, getattr(self, key), key)
 
     def validate(self):
-        """ Check settings for consistency """
+        """Check settings for consistency"""
         prefix = "Error in settings file: "
         if self.markdown_dir is None:
             logging.error(prefix + "markdown_dir can't be empty")
