@@ -157,7 +157,9 @@ class Photo(object):
         )
 
         # resize the image with PIL
-        nimg = self.original_image.resize((nwidth, nheight), Image.ANTIALIAS)
+        nimg = self.original_image.resize(
+            (nwidth, nheight), Image.Resampling.LANCZOS
+        )
 
         pth = self.large_path if mode == "large" else self.small_path
         logging.info("[%s] Saving %s image to %s" % (self.name, mode, pth))
@@ -219,7 +221,7 @@ class Photo(object):
         # Do the actual crop
         nimg = self.original_image.crop(box)
         nimg.load()
-        nimg.thumbnail((nwidth, nheight), Image.ANTIALIAS)
+        nimg.thumbnail((nwidth, nheight), Image.Resampling.LANCZOS)
 
         # Create the filename and save the thumbnail
         logging.info("[%s] Saving SmartCrop.py thumbnail." % self.name)
