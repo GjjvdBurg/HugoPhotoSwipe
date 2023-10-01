@@ -25,8 +25,9 @@ jobs:
           python-version: ${{ matrix.py }}
 
       - name: Install libgirepository
-        run: sudo apt-get install libgirepository1.0-dev
-        if: matrix.os == "ubuntu-latest"
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get install libgirepository1.0-dev
 
       - name: Checkout
         uses: actions/checkout@v2
