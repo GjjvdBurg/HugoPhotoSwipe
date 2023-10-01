@@ -16,7 +16,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ 'ubuntu-latest', 'macos-latest', 'windows-latest' ]
+        # Windows build is disabled, doesn't work without PyGObject. See: 
+        # https://pygobject.readthedocs.io/en/latest/getting_started.html#windows-logo-windows
+        os: [ 'ubuntu-latest', 'macos-latest' ] # , 'windows-latest' ]
         py: [ '3.8', '3.11' ] # minimal and latest
     steps:
       - name: Install Python ${{ matrix.py }}
