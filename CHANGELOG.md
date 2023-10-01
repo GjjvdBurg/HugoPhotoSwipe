@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.3.1
+
+- Fix bug due to `PIL.Image.ANTIALIAS` deprecation
+
 ## Version 0.3.0
 
 - Change checksum algorithm to sha256. This makes checksums in the album.yml 
