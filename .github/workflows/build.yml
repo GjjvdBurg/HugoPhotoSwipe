@@ -24,10 +24,16 @@ jobs:
         with:
           python-version: ${{ matrix.py }}
 
-      - name: Install libgirepository
+      - name: Install PyGObject dependencies (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get install libgirepository1.0-dev
+
+      - name: Install PyGObject dependencies (Ubuntu)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew update
+          brew install pygobject3 gtk4
 
       - name: Checkout
         uses: actions/checkout@v2
